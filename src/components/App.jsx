@@ -5,6 +5,7 @@ import { Wallet } from "ethers";
 import { encryptMnemonic, decryptMnemonic, isMnemonicStored } from "./utils/cryptoUtils";
 import { generateWalletFromMnemonic } from "./utils/walletUtils";
 import Loader from "../components/Loader";
+import { isSessionValid, saveLoginTime } from "./utils/sessionUtils";
 
 // Lazy-loaded screens
 const PasswordScreen = lazy(() => import("./screens/Password"));
@@ -19,10 +20,37 @@ const App = () => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const SESSION_PASSWORD_KEY = "session-password";
 
     // First-time vs returning logic
+
+
+    useEffect(() => {
+        if (!isSessionValid()) {
+            localStorage.removeItem(SESSION_PASSWORD_KEY);
+        }
+    }, []);
+
+
     useEffect(() => {
         const stored = isMnemonicStored();
+
+        if (stored && isSessionValid()) {
+            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+            if (sessionPassword) {
+                const decodedPassword = atob(sessionPassword); // decode base64
+                const decrypted = decryptMnemonic(decodedPassword);
+
+                if (decrypted) {
+                    setPassword(decodedPassword);
+                    setMnemonic(decrypted);
+                    const firstWallet = generateWalletFromMnemonic(decrypted, 0);
+                    setWallets([firstWallet]);
+                    setStep("main");
+                    return;
+                }
+            }
+        }
 
         if (stored) {
             setStep("enter-password");
@@ -38,6 +66,9 @@ const App = () => {
         }
     }, []);
 
+
+
+
     const handlePasswordSubmit = (inputPassword) => {
         if (!inputPassword.trim()) {
             setError("Password is required.");
@@ -47,9 +78,12 @@ const App = () => {
         const encrypted = localStorage.getItem("encrypted-mnemonic");
 
         if (encrypted) {
-            // Returning user
             const decrypted = decryptMnemonic(inputPassword);
             if (decrypted) {
+                // 🧠 Save session password & timestamp
+                localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
+                saveLoginTime();
+
                 setPassword(inputPassword);
                 setMnemonic(decrypted);
                 const firstWallet = generateWalletFromMnemonic(decrypted, 0);
@@ -59,12 +93,16 @@ const App = () => {
                 setError("Invalid password.");
             }
         } else {
-            // New user
-            setPassword(inputPassword);
             encryptMnemonic(mnemonic, inputPassword);
+            localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
+            saveLoginTime();
+
+            setPassword(inputPassword);
             setStep("save-phrase");
         }
     };
+
+
 
     const handleSavePhraseContinue = () => {
         const firstWallet = generateWalletFromMnemonic(mnemonic, 0);
