@@ -32,9 +32,9 @@ const WalletDashboard = ({
                 Add New Account
             </Button>
 
-            <Button variant="outlined" fullWidth sx={{ mt: 1 }} onClick={onReEncrypt}>
+            {/* <Button variant="outlined" fullWidth sx={{ mt: 1 }} onClick={onReEncrypt}>
                 Save Encrypted Mnemonic
-            </Button>
+            </Button> */}
         </>
     );
 };

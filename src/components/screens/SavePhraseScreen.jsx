@@ -3,7 +3,13 @@ import { Button, Typography, Container, Box } from "@mui/material";
 
 const SavePhraseScreen = ({ mnemonic, onContinue }) => {
     return (
-        <Container >
+        <Container sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "93vh",
+        }}>
             <Typography variant="h6" gutterBottom align="center">
                 Save Your Secret Phrase
             </Typography>

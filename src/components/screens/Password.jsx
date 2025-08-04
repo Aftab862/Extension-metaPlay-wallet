@@ -12,7 +12,13 @@ const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
     };
 
     return (
-        <Container>
+        <Container sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "93vh",
+        }}>
             <Typography variant="h6" align="center" gutterBottom>
                 {mode === "create" ? "Create Password" : "Enter Your Password"}
             </Typography>
