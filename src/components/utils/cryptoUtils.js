@@ -1,7 +1,7 @@
 // src/utils/cryptoUtils.js
 import CryptoJS from "crypto-js";
 
-const STORAGE_KEY = "metaplay-encrypted-mnemonic";
+const STORAGE_KEY = "encrypted-mnemonic"; // ✅ Unique and secure
 
 export function encryptMnemonic(mnemonic, password) {
     const ciphertext = CryptoJS.AES.encrypt(mnemonic, password).toString();
@@ -9,14 +9,14 @@ export function encryptMnemonic(mnemonic, password) {
 }
 
 export function decryptMnemonic(password) {
-    const ciphertext = localStorage.getItem(STORAGE_KEY);
-    if (!ciphertext) return null;
+    const encrypted = localStorage.getItem(STORAGE_KEY);
+    if (!encrypted) return null;
 
     try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, password);
+        const bytes = CryptoJS.AES.decrypt(encrypted, password);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
         return decrypted || null;
-    } catch (err) {
+    } catch {
         return null;
     }
 }

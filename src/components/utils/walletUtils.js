@@ -1,22 +1,14 @@
 import { HDNodeWallet, Mnemonic, Wallet } from "ethers";
 // Optional fallback for utility
 
-export const getOrCreateMnemonic = () => {
-    let savedMnemonic = localStorage.getItem("metaplay-mnemonic");
-
-    if (!savedMnemonic) {
-        const wallet = Wallet.createRandom();
-
-        if (!wallet.mnemonic || !wallet.mnemonic.phrase) {
-            throw new Error("Mnemonic generation failed.");
-        }
-
-        savedMnemonic = wallet.mnemonic.phrase;
-        localStorage.setItem("metaplay-mnemonic", savedMnemonic);
+export const generateMnemonic = () => {
+    const wallet = Wallet.createRandom();
+    if (!wallet.mnemonic?.phrase) {
+        throw new Error("Mnemonic generation failed.");
     }
-
-    return savedMnemonic;
+    return wallet.mnemonic.phrase;
 };
+
 
 
 // ✅ Accept index as parameter

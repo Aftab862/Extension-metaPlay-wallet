@@ -1,89 +1,121 @@
-// src/App.jsx
-import React, { lazy, Suspense, useEffect, useState } from "react";
-import { Container, Button, Typography } from "@mui/material";
-import { getOrCreateMnemonic, generateWalletFromMnemonic } from "./utils/walletUtils";
+// src/app/App.jsx
+import React, { useEffect, useState, lazy, Suspense } from "react";
+import { Container } from "@mui/material";
+import { Wallet } from "ethers";
+import { encryptMnemonic, decryptMnemonic, isMnemonicStored } from "./utils/cryptoUtils";
+import { generateWalletFromMnemonic } from "./utils/walletUtils";
+import Loader from "../components/Loader";
 
-const AccountSwitcher = lazy(() => import("./AccountSwitcher"));
-const WalletInfo = lazy(() => import("./WalletInfo"));
-const Loader = lazy(() => import("./Loader"));
+// Lazy-loaded screens
+const PasswordScreen = lazy(() => import("./screens/Password"));
+const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
+const WalletDashboard = lazy(() => import("./screens/WalletDashboard"));
 
 const App = () => {
+    const [step, setStep] = useState("checking");
+    const [mnemonic, setMnemonic] = useState("");
+    const [password, setPassword] = useState("");
     const [wallets, setWallets] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [mnemonic, setMnemonic] = useState("");
-    const [loading, setloading] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
+    // First-time vs returning logic
     useEffect(() => {
-        setloading(true);
-        setTimeout(() => {
-            const savedMnemonic = getOrCreateMnemonic();
-            console.log("savedMnemonic", savedMnemonic);
-            setMnemonic(savedMnemonic);
+        const stored = isMnemonicStored();
 
-            const initialWallet = generateWalletFromMnemonic(savedMnemonic, 0);
-            console.log("initialWallet", initialWallet);
+        if (stored) {
+            setStep("enter-password");
+        } else {
+            const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
+            if (!newMnemonic) {
+                console.error("Failed to generate mnemonic");
+                return;
+            }
 
-            setWallets([initialWallet]);
-            setloading(false);
-        }, 800);
+            setMnemonic(newMnemonic);
+            setStep("set-password");
+        }
     }, []);
 
+    const handlePasswordSubmit = (inputPassword) => {
+        if (!inputPassword.trim()) {
+            setError("Password is required.");
+            return;
+        }
+
+        const encrypted = localStorage.getItem("encrypted-mnemonic");
+
+        if (encrypted) {
+            // Returning user
+            const decrypted = decryptMnemonic(inputPassword);
+            if (decrypted) {
+                setPassword(inputPassword);
+                setMnemonic(decrypted);
+                const firstWallet = generateWalletFromMnemonic(decrypted, 0);
+                setWallets([firstWallet]);
+                setStep("main");
+            } else {
+                setError("Invalid password.");
+            }
+        } else {
+            // New user
+            setPassword(inputPassword);
+            encryptMnemonic(mnemonic, inputPassword);
+            setStep("save-phrase");
+        }
+    };
+
+    const handleSavePhraseContinue = () => {
+        const firstWallet = generateWalletFromMnemonic(mnemonic, 0);
+        setWallets([firstWallet]);
+        setStep("main");
+    };
+
     const handleAddAccount = () => {
-        setloading(true);
+        setLoading(true);
         setTimeout(() => {
             const newIndex = wallets.length;
             const newWallet = generateWalletFromMnemonic(mnemonic, newIndex);
             setWallets((prev) => [...prev, newWallet]);
             setSelectedIndex(newIndex);
-            setloading(false);
-        }, 600);
+            setLoading(false);
+        }, 300);
     };
 
+    const handleReEncrypt = () => {
+        if (mnemonic && password) encryptMnemonic(mnemonic, password);
+    };
 
     return (
-        <Container sx={{ my: 4, width: 360 }}>
-
-
-            <Suspense fallback={<p>Loading...</p>}>
-                {loading ?
-                    <Loader />
-                    :
-
-                    <>
-                        <Typography variant="h6" align="center" gutterBottom>
-                            MetaPlay Wallet
-                        </Typography>
-
-                        <Typography variant="body2" align="center" color="text.secondary" gutterBottom>
-                            Manage Multiple Accounts Using One Mnemonic
-                        </Typography>
-
-                        <AccountSwitcher
-                            accounts={wallets}
-                            selectedIndex={selectedIndex}
-                            onSelect={setSelectedIndex}
-                        />
-
-                        <WalletInfo wallet={wallets[selectedIndex]} />
-
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            sx={{ mt: 2 }}
-                            onClick={handleAddAccount}
-                        >
-                            Add New Account
-                        </Button>
-                    </>
-                }
+        <Container sx={{ my: 2, width: 360 }}>
+            <Suspense fallback={<Loader />}>
+                {step === "checking" ? (
+                    <Loader message="Initializing..." />
+                ) : step === "set-password" || step === "enter-password" ? (
+                    <PasswordScreen
+                        mode={step === "set-password" ? "create" : "enter"}
+                        onPasswordSubmit={handlePasswordSubmit}
+                        error={error}
+                    />
+                ) : step === "save-phrase" ? (
+                    <SavePhraseScreen mnemonic={mnemonic} onContinue={handleSavePhraseContinue} />
+                ) : step === "main" ? (
+                    <WalletDashboard
+                        wallets={wallets}
+                        selectedIndex={selectedIndex}
+                        onSelect={setSelectedIndex}
+                        onAddAccount={handleAddAccount}
+                        loading={loading}
+                        onReEncrypt={handleReEncrypt}
+                    />
+                ) : null}
             </Suspense>
         </Container>
     );
 };
 
 export default App;
-
 
 
 
