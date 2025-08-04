@@ -6,7 +6,7 @@ const Loader = ({ message = "Loading..." }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "85vh",
+        height: "93vh",
         width: "100%",
         color: "#333",
         fontFamily: "Arial, sans-serif",

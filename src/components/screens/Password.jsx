@@ -1,6 +1,7 @@
 // src/screens/PasswordScreen.jsx
 import React, { useState } from "react";
-import { Button, TextField, Typography, Container } from "@mui/material";
+import { Button, TextField, Typography, Container, Box, Avatar } from "@mui/material";
+import LockIcon from "@mui/icons-material/Lock";
 
 const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
     const [password, setPassword] = useState("");
@@ -19,9 +20,16 @@ const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
             justifyContent: "center",
             height: "93vh",
         }}>
-            <Typography variant="h6" align="center" gutterBottom>
-                {mode === "create" ? "Create Password" : "Enter Your Password"}
-            </Typography>
+
+
+            <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
+                <Avatar sx={{ bgcolor: "#1976d2", width: 56, height: 56 }}>
+                    <LockIcon fontSize="large" />
+                </Avatar>
+                <Typography variant="h6" mt={1}>
+                    {mode === "create" ? "Create Password" : "Unlock Your Wallet"}
+                </Typography>
+            </Box>
 
             <TextField
                 fullWidth
@@ -65,6 +73,7 @@ const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
                     (mode === "create" && password !== confirmPassword)
                 }
                 onClick={handleSubmit}
+                sx={{ textTransform: "none" }}
             >
                 {mode === "create" ? "Create Wallet" : "Unlock Wallet"}
             </Button>

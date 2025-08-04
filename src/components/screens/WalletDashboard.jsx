@@ -28,7 +28,7 @@ const WalletDashboard = ({
             <AccountSwitcher accounts={wallets} selectedIndex={selectedIndex} onSelect={onSelect} />
             <WalletInfo wallet={wallets[selectedIndex]} />
 
-            <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={onAddAccount}>
+            <Button variant="contained" fullWidth sx={{ mt: 2, textTransform: "none" }} onClick={onAddAccount}>
                 Add New Account
             </Button>
 
