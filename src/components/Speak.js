@@ -1,0 +1,163 @@
+export async function speakWord(word, onEnd) {
+    const API_URL = "https://api.phonicly.ai/api/text-to-speech/";
+    const BASE_URL = "https://api.phonicly.ai";
+
+    const modifyResponse = (response) => ({
+        ...response,
+        sentence_audio_urls:
+            response?.sentence_audio_urls?.map((item) => ({
+                ...item,
+                audio_url: `${BASE_URL}${item.audio_url}`,
+            })) || [],
+        full_paragraph_audio_url: `${BASE_URL}${response?.full_paragraph_audio_url}`,
+    });
+
+    try {
+        const startTime = performance.now();
+        console.log(
+            `[${(startTime / 1000).toFixed(2)}s] 🎙 Generating audio for: ${word}...`
+        );
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sentences: [word] }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(
+            `[${(performance.now() / 1000).toFixed(2)}s] ✅ API response received`,
+            data
+        );
+
+        const modifiedData = modifyResponse(data);
+        console.log(
+            `[${(performance.now() / 1000).toFixed(2)}s] Extract Audio Url:`,
+            modifiedData
+        );
+
+        const audioUrl =
+            modifiedData?.full_paragraph_audio_url ||
+            modifiedData?.sentence_audio_urls?.[0]?.audio_url;
+
+        if (audioUrl) {
+            console.log(
+                `[${(performance.now() / 1000).toFixed(2)}s] 🔊 Audio Ready: ${audioUrl}`
+            );
+
+            // Fetch the audio blob so we can return it
+            // const audioBlob = await fetch(audioUrl).then((res) => res.blob());
+
+            // Create an audio element for playback
+            const audio = new Audio(audioUrl);
+            audio.preload = "auto";
+
+            let playbackStartTime = 0;
+            audio.addEventListener("play", () => {
+                playbackStartTime = performance.now();
+                console.log(
+                    `[${(playbackStartTime / 1000).toFixed(2)}s] ▶️ Audio is playing now`
+                );
+                const totalDelay = ((playbackStartTime - startTime) / 1000).toFixed(2);
+                console.log(`⏳ Total delay: ${totalDelay} seconds`);
+            });
+
+            audio.addEventListener("ended", () => {
+                const playbackEndTime = performance.now();
+                const playbackDuration = (
+                    (playbackEndTime - playbackStartTime) /
+                    1000
+                ).toFixed(2);
+                console.log(
+                    `[${(playbackEndTime / 1000).toFixed(2)}s] ⏹ Audio finished playing (Duration: ${playbackDuration} seconds)`
+                );
+                if (onEnd) onEnd();
+            });
+
+            // Start playback immediately once audio is buffered
+            audio.play();
+
+            return audioBlob;
+        } else {
+            console.error("❌ No valid audio URL received.");
+        }
+    } catch (error) {
+        console.error("❌ Error fetching speech:", error);
+    }
+}
+
+
+
+
+// export async function speakWord(word) {
+//     const API_URL = "https://api.phonicly.ai/api/text-to-speech/";
+//     const BASE_URL = "https://api.phonicly.ai";
+
+//     const modifyResponse = (response) => ({
+//         ...response,
+//         sentence_audio_urls: response?.sentence_audio_urls?.map((item) => ({
+//             ...item,
+//             audio_url: `${BASE_URL}${item.audio_url}`,
+//         })) || [],
+//         full_paragraph_audio_url: `${BASE_URL}${response?.full_paragraph_audio_url}`,
+//     });
+
+//     try {
+//         const startTime = performance.now();
+//         console.log(`[${(startTime / 1000).toFixed(2)}s] 🎙 Generating audio for: ${word}...`);
+
+//         const response = await fetch(API_URL, {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ sentences: [word] }),
+//         });
+
+//         if (!response.ok) {
+//             throw new Error(`HTTP Error: ${response.status}`);
+//         }
+
+//         const data = await response.json();
+//         const apiResponseTime = performance.now();
+//         console.log(`[${(apiResponseTime / 1000).toFixed(2)}s] ✅ API response received`, data);
+
+//         const modifiedData = modifyResponse(data);
+
+//         console.log(`[${(performance.now() / 1000).toFixed(2)}s] Extract Audio Url: ${modifiedData}`);
+
+//         const audioUrl =
+//             modifiedData?.full_paragraph_audio_url ||
+//             modifiedData?.sentence_audio_urls?.[0]?.audio_url;
+
+//         if (audioUrl) {
+//             console.log(`[${(performance.now() / 1000).toFixed(2)}s] 🔊 Audio Ready: ${audioUrl}`);
+
+//             const audio = new Audio(audioUrl);
+//             let playbackStartTime = 0; // Declare outside to be used in both callbacks
+
+//             audio.addEventListener("play", () => {
+//                 playbackStartTime = performance.now();
+//                 console.log(`[${(playbackStartTime / 1000).toFixed(2)}s] ▶️ Audio is playing now`);
+//                 const totalDelay = ((playbackStartTime - startTime) / 1000).toFixed(2);
+//                 console.log(`⏳ Total delay: ${totalDelay} seconds`);
+//             });
+
+//             audio.addEventListener("ended", () => {
+//                 const playbackEndTime = performance.now();
+//                 const playbackDuration = ((playbackEndTime - playbackStartTime) / 1000).toFixed(2);
+//                 console.log(
+//                     `[${(playbackEndTime / 1000).toFixed(2)}s] ⏹ Audio finished playing (Duration: ${playbackDuration} seconds)`
+//                 );
+//             });
+
+//             audio.play();
+//         } else {
+//             console.error("❌ No valid audio URL received.");
+//         }
+//     } catch (error) {
+//         console.error("❌ Error fetching speech:", error);
+//     }
+// }

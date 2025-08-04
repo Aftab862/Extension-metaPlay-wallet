@@ -1,0 +1,57 @@
+.floating-popup {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    /* high z-index to appear on top */
+    border-radius: 8px;
+    width: 150px;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.listen-btn,
+.mic-btn {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.score-box {
+    margin-top: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
