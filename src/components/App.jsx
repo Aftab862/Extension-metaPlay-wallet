@@ -1,11 +1,11 @@
 // src/App.jsx
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { Container, Button, Typography } from "@mui/material";
-
 import { getOrCreateMnemonic, generateWalletFromMnemonic } from "./utils/walletUtils";
-import AccountSwitcher from "./AccountSwitcher";
-import WalletInfo from "./WalletInfo";
-import Loader from "./Loader";
+
+const AccountSwitcher = lazy(() => import("./AccountSwitcher"));
+const WalletInfo = lazy(() => import("./WalletInfo"));
+const Loader = lazy(() => import("./Loader"));
 
 const App = () => {
     const [wallets, setWallets] = useState([]);
@@ -42,35 +42,42 @@ const App = () => {
 
     return (
         <Container sx={{ my: 4, width: 360 }}>
-            {loading ? <Loader /> :
-                <>
-                    <Typography variant="h6" align="center" gutterBottom>
-                        MetaPlay Wallet
-                    </Typography>
 
-                    <Typography variant="body2" align="center" color="text.secondary" gutterBottom>
-                        Manage Multiple Accounts Using One Mnemonic
-                    </Typography>
 
-                    <AccountSwitcher
-                        accounts={wallets}
-                        selectedIndex={selectedIndex}
-                        onSelect={setSelectedIndex}
-                    />
+            <Suspense fallback={<p>Loading...</p>}>
+                {loading ?
+                    <Loader />
+                    :
 
-                    <WalletInfo wallet={wallets[selectedIndex]} />
+                    <>
+                        <Typography variant="h6" align="center" gutterBottom>
+                            MetaPlay Wallet
+                        </Typography>
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        sx={{ mt: 2 }}
-                        onClick={handleAddAccount}
-                    >
-                        Add New Account
-                    </Button>
-                </>
-            }
+                        <Typography variant="body2" align="center" color="text.secondary" gutterBottom>
+                            Manage Multiple Accounts Using One Mnemonic
+                        </Typography>
+
+                        <AccountSwitcher
+                            accounts={wallets}
+                            selectedIndex={selectedIndex}
+                            onSelect={setSelectedIndex}
+                        />
+
+                        <WalletInfo wallet={wallets[selectedIndex]} />
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            sx={{ mt: 2 }}
+                            onClick={handleAddAccount}
+                        >
+                            Add New Account
+                        </Button>
+                    </>
+                }
+            </Suspense>
         </Container>
     );
 };
