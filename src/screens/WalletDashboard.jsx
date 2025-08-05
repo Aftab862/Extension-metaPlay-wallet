@@ -1,9 +1,11 @@
 // src/screens/WalletDashboard.jsx
 import React from "react";
 import { Typography, Button } from "@mui/material";
-import AccountSwitcher from "../AccountSwitcher";
-import WalletInfo from "../WalletInfo";
-import Loader from "../Loader";
+import Loader from "../components/Loader";
+import WalletInfo from "../components/WalletInfo";
+import AccountSwitcher from "../components/AccountSwitcher";
+
+
 
 const WalletDashboard = ({
     wallets,

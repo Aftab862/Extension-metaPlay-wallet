@@ -4,11 +4,11 @@ import { Container } from "@mui/material";
 import { Wallet } from "ethers";
 import { encryptMnemonic, decryptMnemonic, isMnemonicStored } from "./utils/cryptoUtils";
 import { generateWalletFromMnemonic } from "./utils/walletUtils";
-import Loader from "../components/Loader";
+import Loader from "./components/Loader";
 import { isSessionValid, saveLoginTime } from "./utils/sessionUtils";
-import ImportWalletScreen from "./screens/ImportWallet";
 
 // Lazy-loaded screens
+import ImportWalletScreen from "./screens/ImportWallet";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = lazy(() => import("./screens/WalletDashboard"));

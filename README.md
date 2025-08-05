@@ -27,3 +27,30 @@ npx esbuild src/popup.jsx --bundle --outfile=dist/popup.js --format=iife --minif
 /package.json
 /package-lock.json
 /README.md
+
+
+
+
+src/
+├── App.jsx
+├── popup.jsx
+├── popup.html
+├── background.js
+├── screens/
+│   ├── Welcome.jsx
+│   ├── Password.jsx
+│   │── SavePhraseScreen.jsx
+│   ├── ImportWallet.jsx
+│   ├── WalletDashboard.jsx (To be built)
+|
+├── components/
+│   ├── Header.jsx (Optional, if you need a shared header)
+│   └── AccountSwitcher.jsx 
+│   └── WalletInfo.jsx 
+│   └── Loader.jsx 
+│  
+├── utils/
+│   └── walletUtils.js 
+│   └── cryptoUtils.js 
+│   └── sessionUtils.js 
+│   

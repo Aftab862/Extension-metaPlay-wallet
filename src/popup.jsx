@@ -2,8 +2,9 @@
 // src/popup.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./components/App";
+
 import { CssBaseline } from "@mui/material";
+import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
