@@ -6,11 +6,13 @@ import { encryptMnemonic, decryptMnemonic, isMnemonicStored } from "./utils/cryp
 import { generateWalletFromMnemonic } from "./utils/walletUtils";
 import Loader from "../components/Loader";
 import { isSessionValid, saveLoginTime } from "./utils/sessionUtils";
+import ImportWalletScreen from "./screens/ImportWallet";
 
 // Lazy-loaded screens
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = lazy(() => import("./screens/WalletDashboard"));
+const WelcomeScreen = lazy(() => import("./screens/Welcome"));
 
 const App = () => {
     const [step, setStep] = useState("checking");
@@ -20,10 +22,10 @@ const App = () => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    // 👇 ADD states at the top:
+    const [importedMnemonic, setImportedMnemonic] = useState(null);
+
     const SESSION_PASSWORD_KEY = "session-password";
-
-    // First-time vs returning logic
-
 
     useEffect(() => {
         if (!isSessionValid()) {
@@ -31,16 +33,14 @@ const App = () => {
         }
     }, []);
 
-
     useEffect(() => {
         const stored = isMnemonicStored();
 
         if (stored && isSessionValid()) {
             const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
             if (sessionPassword) {
-                const decodedPassword = atob(sessionPassword); // decode base64
+                const decodedPassword = atob(sessionPassword);
                 const decrypted = decryptMnemonic(decodedPassword);
-
                 if (decrypted) {
                     setPassword(decodedPassword);
                     setMnemonic(decrypted);
@@ -55,19 +55,9 @@ const App = () => {
         if (stored) {
             setStep("enter-password");
         } else {
-            const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
-            if (!newMnemonic) {
-                console.error("Failed to generate mnemonic");
-                return;
-            }
-
-            setMnemonic(newMnemonic);
-            setStep("set-password");
+            setStep("welcome");
         }
     }, []);
-
-
-
 
     const handlePasswordSubmit = (inputPassword) => {
         if (!inputPassword.trim()) {
@@ -80,10 +70,8 @@ const App = () => {
         if (encrypted) {
             const decrypted = decryptMnemonic(inputPassword);
             if (decrypted) {
-                // 🧠 Save session password & timestamp
                 localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
                 saveLoginTime();
-
                 setPassword(inputPassword);
                 setMnemonic(decrypted);
                 const firstWallet = generateWalletFromMnemonic(decrypted, 0);
@@ -96,18 +84,21 @@ const App = () => {
             encryptMnemonic(mnemonic, inputPassword);
             localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
             saveLoginTime();
-
             setPassword(inputPassword);
             setStep("save-phrase");
         }
     };
 
-
-
     const handleSavePhraseContinue = () => {
         const firstWallet = generateWalletFromMnemonic(mnemonic, 0);
         setWallets([firstWallet]);
         setStep("main");
+    };
+
+    const handleImportMnemonic = (mnemonicFromUser) => {
+        setMnemonic(mnemonicFromUser);
+        setImportedMnemonic(mnemonicFromUser);
+        setStep("set-password");
     };
 
     const handleAddAccount = () => {
@@ -121,15 +112,23 @@ const App = () => {
         }, 300);
     };
 
-    const handleReEncrypt = () => {
-        if (mnemonic && password) encryptMnemonic(mnemonic, password);
-    };
-
     return (
         <Container sx={{ my: 2, width: 360 }}>
             <Suspense fallback={<Loader />}>
                 {step === "checking" ? (
                     <Loader message="Initializing..." />
+                ) : step === "welcome" ? (
+                    <WelcomeScreen
+                        onCreateWallet={() => {
+                            const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
+                            if (!newMnemonic) return;
+                            setMnemonic(newMnemonic);
+                            setStep("set-password");
+                        }}
+                        onImportWallet={() => setStep("import-wallet")}
+                    />
+                ) : step === "import-wallet" ? (
+                    <ImportWalletScreen onImport={handleImportMnemonic} />
                 ) : step === "set-password" || step === "enter-password" ? (
                     <PasswordScreen
                         mode={step === "set-password" ? "create" : "enter"}
@@ -137,7 +136,10 @@ const App = () => {
                         error={error}
                     />
                 ) : step === "save-phrase" ? (
-                    <SavePhraseScreen mnemonic={mnemonic} onContinue={handleSavePhraseContinue} />
+                    <SavePhraseScreen
+                        mnemonic={mnemonic}
+                        onContinue={handleSavePhraseContinue}
+                    />
                 ) : step === "main" ? (
                     <WalletDashboard
                         wallets={wallets}
@@ -145,17 +147,14 @@ const App = () => {
                         onSelect={setSelectedIndex}
                         onAddAccount={handleAddAccount}
                         loading={loading}
-                        onReEncrypt={handleReEncrypt}
+                    // onReEncrypt={handleReEncrypt}
                     />
                 ) : null}
             </Suspense>
         </Container>
     );
-};
-
+}
 export default App;
-
-
 
 
 
