@@ -1,4 +1,4 @@
-import phonicly_config from "../../config";
+// import phonicly_config from "../../config";
 
 
 
@@ -139,35 +139,54 @@ export async function fetchNewToken(userId) {
 
 export async function sendUmamiEvent(score, text) {
     try {
-      const payload = {
-        type: "event",
-        payload: {
-          website: phonicly_config.UMAMI_WEBSITE_ID,
-          url: window.location.href || "chrome-extension://popup.html",
-          hostname: window.location.hostname || "extension",
-          screen: `${window.screen.width}x${window.screen.height}`,
-          language: navigator.language,
-          title: document.title || "Phonicly Extension",
-          name: "extension_shadowing", // 🔥 custom event name
-          data: {
-            score,
-            text,
-          },
-        },
-      };
-  
-      await fetch(phonicly_config.UMAMI_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${phonicly_config.UMAMI_API_KEY}`,
-        },
-        body: JSON.stringify(payload),
-      });
-  
-      console.log("📊 Umami event sent successfully:", payload);
+        const payload = {
+            type: "event",
+            payload: {
+                website: phonicly_config.UMAMI_WEBSITE_ID,
+                url: window.location.href || "chrome-extension://popup.html",
+                hostname: window.location.hostname || "extension",
+                screen: `${window.screen.width}x${window.screen.height}`,
+                language: navigator.language,
+                title: document.title || "Phonicly Extension",
+                name: "extension_shadowing", // 🔥 custom event name
+                data: {
+                    score,
+                    text,
+                },
+            },
+        };
+
+        await fetch(phonicly_config.UMAMI_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${phonicly_config.UMAMI_API_KEY}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        console.log("📊 Umami event sent successfully:", payload);
     } catch (error) {
-      console.warn("Umami event tracking failed:", error);
+        console.warn("Umami event tracking failed:", error);
     }
-  }
-  
+}
+export function mapColors(symbol) {
+
+    console.log("symbol :", symbol)
+    switch (symbol) {
+        case "EVM": // EVM
+            return 'dodgerblue'; // blue
+        case "SOL": // Solana
+            return 'purple';
+        case 3: // Bitcoin
+            return '#f7931a'; // orange
+        default:
+            return '#9e9e9e'; // grey (fallback)
+    }
+}
+
+export function capitalizeFirstLetter(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+

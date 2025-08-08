@@ -16,6 +16,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { capitalizeFirstLetter, mapColors } from "../utils/helper";
 
 const chainLogos = {
     ethereum: { symbol: "ETH", label: "Ethereum", color: "#3c3c3d" },
@@ -40,30 +41,12 @@ const WalletDashboard = ({
 
     const actionItems = [
         { label: "Send", icon: <ArrowUpwardIcon /> },
-        { label: "Receive", icon: <ArrowUpwardIcon /> },
+        { label: "Receive", icon: <ArrowDownwardIcon /> },
         { label: "Buy", icon: <ShoppingCartIcon /> },
         { label: "Swap", icon: <SwapHorizIcon /> },
     ];
 
-    function mapColors(symbol) {
 
-        console.log("symbol :", symbol)
-        switch (symbol) {
-            case "EVM": // EVM
-                return '#3C3C3D'; // blue
-            case "SOL": // Solana
-                return '#00FFA3';
-            case 3: // Bitcoin
-                return '#f7931a'; // orange
-            default:
-                return '#9e9e9e'; // grey (fallback)
-        }
-    }
-
-    function capitalizeFirstLetter(str) {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 
 
     return (
