@@ -11,6 +11,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    emptyOutDir: false, // 🛑 <--- This is what prevents deleting background.js!
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'popup.html')

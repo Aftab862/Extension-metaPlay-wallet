@@ -107,3 +107,61 @@
 
 // ReactDOM.createRoot(document.getElementById("root")).render(<Popup />);
 
+
+
+
+// import React, { useState } from 'react'
+// import { Box, Button, Typography, Container, CssBaseline } from "@mui/material";
+// import { Wallet, Mnemonic } from "ethers";
+
+// const App = () => {
+
+
+//     const [mnemonic, setMnemonic] = useState("");
+//     const [privateKey, setPrivateKey] = useState("");
+//     const [address, setAddress] = useState("");
+
+//     const handleGenerate = async () => {
+//         // Generate random wallet with mnemonic
+//         const wallet = Wallet.createRandom();
+//         console.log("wallet", wallet)
+//         setMnemonic(wallet.mnemonic?.phrase);
+//         setPrivateKey(wallet.privateKey);
+//         setAddress(wallet.address);
+//     };
+
+//     return (
+//         <Container sx={{ mt: 2, p: 3, width: "330px" }}>
+//             <Typography variant="h6" align="center" gutterBottom>
+//                 Welcome to <strong>MetaPlay Wallet</strong>
+//             </Typography>
+
+//             <Typography variant="body2" align="center" color="text.secondary" gutterBottom>
+//                 Keep your crypto in MetaPlay Wallet
+//             </Typography>
+
+//             <Box textAlign="center" mt={2}>
+//                 <Button variant="contained" color="secondary" onClick={handleGenerate}>
+//                     Generate Wallet
+//                 </Button>
+//             </Box>
+
+//             {mnemonic && (
+//                 <Box mt={3}>
+//                     <Typography variant="subtitle2">Mnemonic:</Typography>
+//                     <Typography variant="body2" sx={{ wordBreak: "break-word" }}>{mnemonic}</Typography>
+
+//                     <Typography variant="subtitle2" mt={1}>Private Key:</Typography>
+//                     <Typography variant="body2" sx={{ wordBreak: "break-word" }}>{privateKey}</Typography>
+
+//                     <Typography variant="subtitle2" mt={1}>Address:</Typography>
+//                     <Typography variant="body2" sx={{ wordBreak: "break-word" }}>{address}</Typography>
+//                 </Box>
+//             )}
+//         </Container>
+//     );
+// };
+
+
+
+// export default App

@@ -1,5 +1,5 @@
 const SESSION_KEY = "last-login-time";
-const TIME_LIMIT_MINUTES = 5;
+const TIME_LIMIT_MINUTES = 100;
 
 export const saveLoginTime = () => {
     localStorage.setItem(SESSION_KEY, Date.now().toString());

@@ -5,6 +5,7 @@ const STORAGE_KEY = "encrypted-mnemonic"; // ✅ Unique and secure
 
 export function encryptMnemonic(mnemonic, password) {
     const ciphertext = CryptoJS.AES.encrypt(mnemonic, password).toString();
+    console.log("encryptMnemonic called :", mnemonic, password, ciphertext,)
     localStorage.setItem(STORAGE_KEY, ciphertext);
 }
 

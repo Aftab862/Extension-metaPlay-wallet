@@ -1,5 +1,9 @@
-import { HDNodeWallet, Mnemonic, Wallet } from "ethers";
-// Optional fallback for utility
+import { Wallet, HDNodeWallet, Mnemonic } from "ethers";
+import * as bip39 from "bip39";
+import * as ed25519 from "ed25519-hd-key";
+import { Keypair } from "@solana/web3.js";
+import { Buffer } from 'buffer'; // <- Fix for Buffer
+window.Buffer = Buffer; // <- Globalize Buffer for browser
 
 export const generateMnemonic = () => {
     const wallet = Wallet.createRandom();
@@ -9,17 +13,43 @@ export const generateMnemonic = () => {
     return wallet.mnemonic.phrase;
 };
 
-
-
-// ✅ Accept index as parameter
-export function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
+export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
     const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase);
 
-    const path = `m/44'/60'/0'/0/${index}`;
-    const hdWallet = HDNodeWallet.fromMnemonic(mnemonic, path);
+    // ✅ EVM Wallet
+    const evmPath = `m/44'/60'/0'/0/${index}`;
+    const evmWallet = HDNodeWallet.fromMnemonic(mnemonic, evmPath);
+
+    // ✅ Solana Wallet
+    const solanaPath = `m/44'/501'/${index}'/0'`;
+    const seed = await bip39.mnemonicToSeed(mnemonicPhrase);
+    const { key } = ed25519.derivePath(solanaPath, seed.toString("hex"));
+    console.log("key : ", key)
+
+    const solanaKeypair = Keypair.fromSeed(key.slice(0, 32));
+
 
     return {
-        address: hdWallet.address,
-        privateKey: hdWallet.privateKey,
+        evm: {
+            address: evmWallet.address,
+            privateKey: evmWallet.privateKey,
+        },
+        solana: {
+            address: solanaKeypair.publicKey.toBase58(),
+            privateKey: Buffer.from(solanaKeypair.secretKey).toString("hex"),
+        },
+
+    };
+}
+
+
+export function normalizeWalletObject(walletObj, index) {
+    return {
+        accountIndex: index,
+        chains: Object.entries(walletObj).map(([type, data]) => ({
+            type,
+            address: data.address,
+            privateKey: data.privateKey,
+        })),
     };
 }
