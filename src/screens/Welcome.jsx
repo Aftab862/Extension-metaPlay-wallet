@@ -10,7 +10,8 @@ const WelcomeScreen = ({ onCreateWallet, onImportWallet }) => {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                height: "93vh",
+                height: 550
+
             }}
         >
             <Typography variant="h5" gutterBottom>

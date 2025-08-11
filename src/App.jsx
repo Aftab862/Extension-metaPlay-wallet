@@ -202,7 +202,7 @@ const App = () => {
     };
 
     return (
-        <Container sx={{ m: 0, p: 0, width: 360 }}>
+        <Container sx={{ m: 0, p: 0, width: 360, height: 550 }}>
             <Suspense fallback={<Loader />}>
                 {step === "checking" ? (
                     <Loader message="Initializing..." />
