@@ -1,102 +1,117 @@
-// src/screens/WalletDashboard.jsx
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
     Box,
     Typography,
-    Button,
-    MenuItem,
-    Select,
     Grid,
-    Paper,
     Avatar,
+    IconButton
 } from "@mui/material";
-import Loader from "../components/Loader";
-import AddIcon from "@mui/icons-material/Add";
+import LanguageIcon from "@mui/icons-material/Language";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { capitalizeFirstLetter, mapColors } from "../utils/helper";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import MenuIcon from "@mui/icons-material/Menu";
 
-const chainLogos = {
-    ethereum: { symbol: "ETH", label: "Ethereum", color: "#3c3c3d" },
-    solana: { symbol: "SOL", label: "Solana", color: "#8247e5" },
+import { EVM_CHAINS } from "../config/chain";
+import ChainSelectorModal from "../components/ChainSelectorModal";
+import AccountSelectorModal from "../components/AccountSelectorModal";
+import { mapColors } from "../utils/helper";
+import Loader from "../components/Loader";
+
+const fmt = (value, decimals = 4) => {
+    const num = Number(value);
+    return isFinite(num) ? num.toFixed(decimals) : "0.0000";
 };
 
+const actionItems = [
+    { label: "Send", icon: <ArrowUpwardIcon /> },
+    { label: "Receive", icon: <ArrowDownwardIcon /> },
+    { label: "Buy", icon: <ShoppingCartIcon /> },
+    { label: "Swap", icon: <SwapHorizIcon /> },
+];
+
 const WalletDashboard = ({
-    wallets,
-    selectedIndex,
+    wallets = [],
+    selectedIndex = 0,
     onSelect,
     onAddAccount,
-    loading,
+    loading = false
 }) => {
+    const [chainModalOpen, setChainModalOpen] = useState(false);
+    const [accountModalOpen, setAccountModalOpen] = useState(false);
+    const [selectedChain, setSelectedChain] = useState(EVM_CHAINS[0]);
+    const [chainBalances, setChainBalances] = useState({
+        native: "0",
+        tokens: [],
+        loading: false
+    });
+
+    const selectedWallet = useMemo(
+        () => wallets[selectedIndex] || null,
+        [wallets, selectedIndex]
+    );
+
+    const evmAddress = useMemo(
+        () => selectedWallet?.chains?.find(c => c.type === "evm")?.address || null,
+        [selectedWallet]
+    );
+
+    // Loader states
     if (loading) return <Loader message="Adding account..." />;
-
-    const selectedWallet = wallets[selectedIndex];
-    const chains = selectedWallet?.chains || [];
-    console.log("selectedWallet", selectedWallet)
-    console.log("chains", chains)
-
-
-
-    const actionItems = [
-        { label: "Send", icon: <ArrowUpwardIcon /> },
-        { label: "Receive", icon: <ArrowDownwardIcon /> },
-        { label: "Buy", icon: <ShoppingCartIcon /> },
-        { label: "Swap", icon: <SwapHorizIcon /> },
-    ];
-
-
-
+    if (!selectedWallet) {
+        console.warn("WalletDashboard: No wallet found for index", selectedIndex);
+        return <Loader message="Loading wallet..." />;
+    }
 
     return (
-        <Box >
+        <Box>
             {/* Header */}
-            <Box display="flex" p={3} bgcolor="#1976d2" flexDirection="column" justifyContent="space-between" alignItems="center" mb={3}>
-                <Box mb={2}>
-                    <Select
-                        value={selectedIndex}
-                        onChange={(e) => onSelect(Number(e.target.value))}
-                        sx={{
-                            backgroundColor: "white",
-                            color: "black",
-                            borderRadius: "8px",
-                            minWidth: 160,
-                            fontWeight: "normal",
-                        }}
-                    >
-                        {wallets.map((wallet, idx) => {
-                            const evm = wallet.chains.find(c => c.type === "evm");
-                            const shortAddr = evm?.address
-                                ? `${evm.address.slice(0, 6)}...${evm.address.slice(-4)}`
-                                : `Account ${idx + 1}`;
-                            return (
-                                <MenuItem key={idx} value={idx}>
-                                    Account {idx + 1} ({shortAddr})
-                                </MenuItem>
-                            );
-                        })}
-                        <MenuItem disabled divider />
-                        <MenuItem onClick={onAddAccount}>
-                            <AddIcon sx={{ mr: 1 }} /> Add Account
-                        </MenuItem>
-                    </Select>
+            <Box display="flex" alignItems="center" justifyContent="space-between" p={1} bgcolor="#1976d2">
+                {/* Account Info */}
+                <Box
+                    p={1}
+                    display="flex"
+                    alignItems="flex-start"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => setAccountModalOpen(true)}
+                >
+                    <Box>
+                        <Typography variant="body2" color="white">
+                            Mnemonic {selectedIndex + 1}
+                        </Typography>
+                        <Typography variant="caption" color="white">
+                            {evmAddress ? `Account ${selectedIndex + 1}` : "No account"}
+                        </Typography>
+                    </Box>
+                    <Avatar sx={{ width: 28, height: 18, ml: 0.4, background: "#1976d2" }}>
+                        {accountModalOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                    </Avatar>
                 </Box>
-                <Box>
-                    {/* <Typography variant="h6" fontWeight="bold">Wallets</Typography> */}
-                    <Typography textAlign="center" variant="h5" color="lightgray" fontWeight="bold">$0.00</Typography>
-                    <Typography textAlign="center" variant="subtitle2" color="lightgray">Total Balance</Typography>
+
+                {/* Menu */}
+                <Box display="flex" gap={1}>
+                    <IconButton sx={{ color: "white" }} onClick={() => setChainModalOpen(true)}>
+                        <LanguageIcon />
+                    </IconButton>
+                    <IconButton sx={{ color: "white" }}>
+                        <MenuIcon />
+                    </IconButton>
                 </Box>
             </Box>
 
-            {/* Action Buttons */}
+            {/* Balances */}
+            <Box display="flex" flexDirection="column" alignItems="center" my={2}>
+                <Typography variant="h5" color="text.secondary">$0.00</Typography>
+                <Typography variant="subtitle2" color="text.secondary">Total Balance</Typography>
+            </Box>
 
+            {/* Actions */}
             <Grid p={1} container spacing={2} textAlign="center">
                 {actionItems.map((item, index) => (
-                    <Grid
-                        key={index}
-                        item
-                        xs={3}
+                    <Grid key={index} item xs={3}
                         display="flex"
                         flexDirection="column"
                         alignItems="center"
@@ -106,48 +121,73 @@ const WalletDashboard = ({
                     </Grid>
                 ))}
             </Grid>
-            {/* Assets Section */}
-            <Box p={3}>
-                <Typography variant="subtitle1" gutterBottom>
-                    Assets
-                </Typography>
-                {chains.map((chain, idx) => {
-                    const info = chainLogos[chain.type.toLowerCase()] || {
-                        symbol: chain.type.slice(0, 3).toUpperCase(),
-                        label: capitalizeFirstLetter(chain?.type),
 
-                    };
-                    return (
-                        <Paper
-                            key={idx}
-                            sx={{
-                                p: 2,
-                                mb: 1,
-                                display: "flex",
-                                alignItems: "center",
-                                backgroundColor: "lightgray",
-                                borderRadius: 3,
+            {/* Assets */}
+            <Box p={1}>
+                <Box display="flex" p={1} alignItems="center" sx={{ mt: 5 }}>
+                    <Avatar sx={{ fontSize: "10px", bgcolor: mapColors(selectedChain.nativeSymbol), mr: 2 }}>
+                        {selectedChain.nativeSymbol}
+                    </Avatar>
+                    <Box flexGrow={1}>
+                        <Typography fontWeight="bold">{selectedChain.name}</Typography>
+                        <Typography fontSize="0.8rem" color="gray">
+                            {evmAddress ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}` : "No address"}
+                        </Typography>
+                    </Box>
+                    <Box textAlign="right">
+                        <Typography fontWeight="bold">
+                            {fmt(chainBalances.native)} {selectedChain.nativeSymbol}
+                        </Typography>
+                        <Typography fontSize="0.8rem" color="gray">Native</Typography>
+                    </Box>
+                </Box>
 
-                            }}
-                        >
-                            <Avatar sx={{ bgcolor: mapColors(info.symbol), mr: 2, fontSize: "10px" }}>
-                                {info.symbol}
-                            </Avatar>
-
-                            <Box flexGrow={1}>
-                                <Typography fontWeight="bold">{info.label}</Typography>
-                                <Typography fontSize="0.8rem" color="gray">
-                                    {chain.address.slice(0, 6)}...{chain.address.slice(-4)}
-                                </Typography>
+                <Box mt={0.5} p={2}>
+                    {chainBalances.loading ? (
+                        <Loader message="Loading tokens..." />
+                    ) : chainBalances.tokens.length > 0 ? (
+                        chainBalances.tokens.map((t) => (
+                            <Box
+                                key={t.address}
+                                display="flex"
+                                justifyContent="space-between"
+                                alignItems="center"
+                                py={1}
+                                borderBottom="1px solid #eee"
+                            >
+                                <Box>
+                                    <Typography fontWeight="bold">{t.symbol}</Typography>
+                                    <Typography fontSize="0.8rem" color="gray">
+                                        {t.address.slice(0, 6)}...{t.address.slice(-4)}
+                                    </Typography>
+                                </Box>
+                                <Box textAlign="right">
+                                    <Typography>{fmt(t.balance)}</Typography>
+                                </Box>
                             </Box>
-                            <Box textAlign="right">
-                                <Typography fontWeight="bold">$0.00</Typography>
-                                <Typography fontSize="0.8rem" color="gray">0.0000 {info.symbol}</Typography>
-                            </Box>
-                        </Paper>
-                    );
-                })}
+                        ))
+                    ) : (
+                        <Typography color="text.secondary">No tokens found</Typography>
+                    )}
+                </Box>
             </Box>
+
+            {/* Modals */}
+            <ChainSelectorModal
+                open={chainModalOpen}
+                onClose={() => setChainModalOpen(false)}
+                chains={EVM_CHAINS}
+                selectedChain={selectedChain}
+                onSelect={setSelectedChain}
+            />
+            <AccountSelectorModal
+                open={accountModalOpen}
+                onClose={() => setAccountModalOpen(false)}
+                wallets={wallets}
+                selectedIndex={selectedIndex}
+                onSelect={onSelect}
+                onAddAccount={onAddAccount}
+            />
         </Box>
     );
 };

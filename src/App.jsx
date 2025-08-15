@@ -24,13 +24,7 @@
 
 
 
-
-
-
-
-
-// src/app/App.jsx
-import React, { useEffect, useState, lazy, Suspense } from "react";
+import React, { useEffect, useState, lazy, Suspense, useMemo, useCallback } from "react";
 import { Container } from "@mui/material";
 import { Wallet } from "ethers";
 import {
@@ -39,7 +33,6 @@ import {
     isMnemonicStored,
 } from "./utils/cryptoUtils";
 import {
-    generateMnemonic,
     generateWalletFromMnemonic,
     normalizeWalletObject,
 } from "./utils/walletUtils";
@@ -53,11 +46,10 @@ import {
     saveToLocalStorage,
 } from "./utils/storage";
 
-// Lazy-loaded screens
 import ImportWalletScreen from "./screens/ImportWallet";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
-const WalletDashboard = lazy(() => import("./screens/WalletDashboard"));
+const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard"))); // ✅ memoized
 const WelcomeScreen = lazy(() => import("./screens/Welcome"));
 
 const SESSION_PASSWORD_KEY = "session-password";
@@ -90,21 +82,16 @@ const App = () => {
                     if (decrypted) {
                         setPassword(decodedPassword);
                         setMnemonic(decrypted);
-                        setWallets(walletData.wallets || []);
-                        setSelectedIndex(walletData.selectedIndex || 0);
+                        setWallets(walletData?.wallets || []);
+                        setSelectedIndex(walletData?.selectedIndex || 0);
                         setStep("main");
                         return;
                     }
                 }
             }
-
-            if (stored) {
-                setStep("enter-password");
-            } else {
-                setStep("welcome");
-            }
+            if (stored) setStep("enter-password");
+            else setStep("welcome");
         };
-
         init();
     }, []);
 
@@ -113,30 +100,27 @@ const App = () => {
             setError("Password is required.");
             return;
         }
-
         const encrypted = localStorage.getItem("encrypted-mnemonic");
-
         if (encrypted) {
-            // Existing user
             const decrypted = decryptMnemonic(inputPassword);
             if (decrypted) {
                 localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
                 saveLoginTime();
                 setPassword(inputPassword);
                 setMnemonic(decrypted);
-
                 const walletData = loadFromLocalStorage(WALLET_DATA_KEY);
                 if (walletData?.wallets?.length) {
                     setWallets(walletData.wallets);
-                    setSelectedIndex(walletData.selectedIndex || 0);
+                    setSelectedIndex(walletData?.selectedIndex || 0);
                     setStep("main");
                 } else {
                     const firstWallet = await generateWalletFromMnemonic(decrypted, 0);
                     const normalized = normalizeWalletObject(firstWallet, 0);
-                    setWallets([normalized]);
+                    const initialWallets = [normalized];
+                    setWallets(initialWallets);
                     setSelectedIndex(0);
                     saveToLocalStorage(WALLET_DATA_KEY, {
-                        wallets: [normalized],
+                        wallets: initialWallets,
                         selectedIndex: 0,
                         accountCount: 1,
                     });
@@ -146,25 +130,23 @@ const App = () => {
                 setError("Invalid password.");
             }
         } else {
-            // First-time user
             localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
             saveLoginTime();
             setPassword(inputPassword);
             encryptMnemonic(mnemonic, inputPassword);
-
             const firstWallet = await generateWalletFromMnemonic(mnemonic, 0);
             const normalized = normalizeWalletObject(firstWallet, 0);
-            setWallets([normalized]);
+            const initialWallets = [normalized];
+            setWallets(initialWallets);
             setSelectedIndex(0);
             saveToLocalStorage(WALLET_DATA_KEY, {
-                wallets: [normalized],
+                wallets: initialWallets,
                 selectedIndex: 0,
                 accountCount: 1,
             });
             setStep("save-phrase");
         }
     };
-
     const handleSavePhraseContinue = () => {
         setStep("main");
     };
@@ -173,7 +155,6 @@ const App = () => {
         setMnemonic(mnemonicFromUser);
         setStep("set-password");
     };
-
     const handleAddAccount = async () => {
         setLoading(true);
         const newIndex = wallets.length;
@@ -192,21 +173,24 @@ const App = () => {
         setLoading(false);
     };
 
-    const handleSelectAccount = (index) => {
+    const handleSelectAccount = useCallback((index) => {
         setSelectedIndex(index);
-        const walletData = loadFromLocalStorage(WALLET_DATA_KEY);
+        const walletData = loadFromLocalStorage(WALLET_DATA_KEY) || {};
         saveToLocalStorage(WALLET_DATA_KEY, {
             ...walletData,
             selectedIndex: index,
         });
-    };
+    }, []);
+
+    // ✅ Memoized props to avoid re-renders
+    const memoizedWallets = useMemo(() => wallets, [wallets]);
+    const memoizedSelectedIndex = useMemo(() => selectedIndex, [selectedIndex]);
 
     return (
         <Container sx={{ m: 0, p: 0, width: 360, height: 550 }}>
             <Suspense fallback={<Loader />}>
-                {step === "checking" ? (
-                    <Loader message="Initializing..." />
-                ) : step === "welcome" ? (
+                {step === "checking" && <Loader message="Initializing..." />}
+                {step === "welcome" && (
                     <WelcomeScreen
                         onCreateWallet={() => {
                             const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
@@ -216,33 +200,36 @@ const App = () => {
                         }}
                         onImportWallet={() => setStep("import-wallet")}
                     />
-                ) : step === "import-wallet" ? (
+                )}
+                {step === "import-wallet" && (
                     <ImportWalletScreen onImport={handleImportMnemonic} />
-                ) : step === "set-password" || step === "enter-password" ? (
+                )}
+                {(step === "set-password" || step === "enter-password") && (
                     <PasswordScreen
                         mode={step === "set-password" ? "create" : "enter"}
                         onPasswordSubmit={handlePasswordSubmit}
                         error={error}
                     />
-                ) : step === "save-phrase" ? (
+                )}
+                {step === "save-phrase" && (
                     <SavePhraseScreen
                         mnemonic={mnemonic}
                         onContinue={handleSavePhraseContinue}
                     />
-                ) : step === "main" ? (
+                )}
+                {step === "main" && (
                     <WalletDashboard
-                        wallets={wallets}
-                        selectedIndex={selectedIndex}
+                        wallets={memoizedWallets}
+                        selectedIndex={memoizedSelectedIndex}
                         onSelect={handleSelectAccount}
                         onAddAccount={handleAddAccount}
                         loading={loading}
                     />
-                ) : null}
+                )}
             </Suspense>
         </Container>
     );
 };
 
 export default App;
-
 

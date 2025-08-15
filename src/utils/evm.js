@@ -1,23 +1,20 @@
+// src/utils/evm.js
 import { ethers } from "ethers";
 
-// Fetch native balance (ETH, BNB, MATIC, etc)
+// Get native balance as a number string (in ETH/MATIC/BNB units)
 export async function getNativeBalance(rpcUrl, address) {
+    if (!rpcUrl || !address) return "0";
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const balance = await provider.getBalance(address);
-    return Number(ethers.formatEther(balance));
+    return ethers.formatEther(balance); // returns string
 }
 
-// Fetch ERC20 token balance by contract
-export async function getTokenBalance(rpcUrl, tokenAddress, userAddress, decimals) {
+// Get ERC-20 token balance using minimal ABI, returns formatted string
+export async function getTokenBalance(rpcUrl, tokenAddress, userAddress, decimals = 18) {
+    if (!rpcUrl || !tokenAddress || !userAddress) return "0";
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    // ERC20 minimal ABI for balanceOf()
-    const abi = ["function balanceOf(address owner) view returns (uint256)"];
+    const abi = ["function balanceOf(address) view returns (uint256)"];
     const contract = new ethers.Contract(tokenAddress, abi, provider);
-
-    try {
-        const rawBalance = await contract.balanceOf(userAddress);
-        return Number(ethers.formatUnits(rawBalance, decimals));
-    } catch {
-        return 0;
-    }
+    const raw = await contract.balanceOf(userAddress);
+    return ethers.formatUnits(raw, decimals); // returns string
 }
