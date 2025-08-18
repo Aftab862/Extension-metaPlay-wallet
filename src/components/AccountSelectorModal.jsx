@@ -19,10 +19,8 @@ import {
     Tooltip,
     ListItemButton
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import WalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 export default function AccountSelectorModal({
@@ -109,6 +107,7 @@ export default function AccountSelectorModal({
                                                     display: "flex",
                                                     alignItems: "center",
                                                     "&.Mui-selected": {
+                                                        margin: "0 10px",
                                                         backgroundColor: "primary.main",
                                                         color: "white",
                                                         "& .MuiListItemText-primary": {
@@ -140,14 +139,7 @@ export default function AccountSelectorModal({
                                                         onClose();
                                                     }}
                                                 />
-                                                <Tooltip title="Copy address">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleCopyAddress(address)}
-                                                    >
-                                                        <ContentCopyIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
+
                                                 <IconButton
                                                     size="small"
                                                     onClick={(e) => handleMenuOpen(e, account)}
