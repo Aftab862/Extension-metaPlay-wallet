@@ -23,10 +23,10 @@ const WelcomeScreen = ({ onCreateWallet, onImportWallet }) => {
             </Typography>
 
             <Stack spacing={2} width="100%">
-                <Button variant="contained" fullWidth onClick={onCreateWallet}>
+                <Button variant="contained" fullWidth sx={{ textTransform: "none" }} onClick={onCreateWallet}>
                     Create a New Wallet
                 </Button>
-                <Button variant="outlined" fullWidth onClick={onImportWallet}>
+                <Button variant="outlined" fullWidth sx={{ textTransform: "none" }} onClick={onImportWallet}>
                     Import Using Recovery Phrase
                 </Button>
             </Stack>

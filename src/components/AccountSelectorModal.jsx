@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Avatar,
     Box,
@@ -12,26 +12,46 @@ import {
     ListItem,
     ListItemAvatar,
     ListItemText,
-    Typography
+    ListSubheader,
+    Typography,
+    Menu,
+    MenuItem,
+    Tooltip,
+    ListItemButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import WalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 export default function AccountSelectorModal({
     open,
     onClose,
-    wallets = [],
-    selectedIndex = 0,
-    onSelect,
-    onAddAccount
+    wallet,
+    selectedWalletIndex = 0,
+    selectedAccountIndex = 0,
+    onSelectAccount,
+    onAddAccount,
+    setImportModalOpen
 }) {
-    const selectedWallet = wallets[selectedIndex];
-    const totalUSD = 0; // Can calculate from chainBalances if needed
+    const totalUSD = 0; // placeholder
+    const [menuAnchor, setMenuAnchor] = useState(null);
+    const [menuAccount, setMenuAccount] = useState(null);
 
+    const handleCopyAddress = (address) => {
+        navigator.clipboard.writeText(address);
+    };
 
+    const handleMenuOpen = (event, account) => {
+        setMenuAnchor(event.currentTarget);
+        setMenuAccount(account);
+    };
 
+    const handleMenuClose = () => {
+        setMenuAnchor(null);
+        setMenuAccount(null);
+    };
 
     return (
         <Dialog
@@ -39,8 +59,8 @@ export default function AccountSelectorModal({
             onClose={onClose}
             maxWidth="xs"
             fullWidth
-            scroll="paper" // Prevents weird jumps
-            disableScrollLock // Stops body shift when scrollbar disappears
+            scroll="paper"
+            disableScrollLock
         >
             <DialogTitle
                 sx={{
@@ -51,75 +71,163 @@ export default function AccountSelectorModal({
                 }}
             >
                 <Typography variant="h6">
-                    {selectedWallet ? `Mnemonic ${selectedIndex + 1}` : "Accounts"}
+                    {wallet ? `Wallets` : "Accounts"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                     ${totalUSD.toFixed(2)}
                 </Typography>
-                {/* <IconButton onClick={onClose}>
-                    <CloseIcon />
-                </IconButton> */}
             </DialogTitle>
 
-            <DialogContent p={0}>
-                {wallets.length > 0 ? (
+            <DialogContent sx={{ p: 0.5 }}>
+                {wallet && wallet.length > 0 ? (
                     <List>
-                        {wallets.map((wallet, idx) => {
-                            const evm = wallet.chains?.find((c) => c.type === "evm");
-                            const shortAddr = evm?.address
-                                ? `${evm.address.slice(0, 6)}...${evm.address.slice(-4)}`
-                                : `Account ${idx + 1}`;
-                            { console.log("wallet : ", idx, wallet) }
-                            return (
-                                <ListItem
-                                    key={wallet.accountIndex}
-                                    button
-                                    selected={idx === selectedIndex}
-                                    onClick={() => {
-                                        onSelect(idx);
-                                        onClose();
-                                    }}
-                                >
-                                    <ListItemAvatar>
-                                        <Avatar>
-                                            <AccountCircleIcon />
+                        {wallet.map((w, wIdx) => (
+                            <React.Fragment key={wIdx}>
+                                <ListSubheader>{`Wallet ${wIdx + 1}`}</ListSubheader>
+                                {w.accounts.map((account, aIdx) => {
+                                    const address = account.chains?.[0]?.address || "No address";
+                                    {
+                                        console.log(
+                                            "check:",
+                                            "wIdx=", wIdx,
+                                            "aIdx=", aIdx,
+                                            "selectedWalletIndex=", selectedWalletIndex,
+                                            "selectedAccountIndex=", selectedAccountIndex
+                                        )
+                                    }
 
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        primary={`Account ${idx + 1}`}
-                                        secondary={shortAddr}
-                                    />
-                                </ListItem>
-                            );
-                        })}
+                                    return (
+                                        <ListItem
+                                            key={aIdx}
+                                            disablePadding
+                                            sx={{ mb: 0.5 }}
+                                        >
+                                            <ListItemButton
+                                                selected={wIdx === selectedWalletIndex && aIdx === selectedAccountIndex}
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    "&.Mui-selected": {
+                                                        backgroundColor: "primary.main",
+                                                        color: "white",
+                                                        "& .MuiListItemText-primary": {
+                                                            fontWeight: "bold",
+                                                            color: "white",
+                                                        },
+                                                        "& .MuiListItemText-secondary": {
+                                                            color: "white",
+                                                        },
+                                                        "& .MuiSvgIcon-root": {
+                                                            color: "white",
+                                                        }
+                                                    },
+                                                    "&:hover": {
+                                                        backgroundColor: "action.hover",
+                                                    }
+                                                }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar>
+                                                        <WalletIcon />
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={`Account ${aIdx + 1}`}
+                                                    secondary={`${address.slice(0, 6)}...${address.slice(-4)}`}
+                                                    onClick={() => {
+                                                        onSelectAccount(wIdx, aIdx);
+                                                        onClose();
+                                                    }}
+                                                />
+                                                <Tooltip title="Copy address">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleCopyAddress(address)}
+                                                    >
+                                                        <ContentCopyIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => handleMenuOpen(e, account)}
+                                                >
+                                                    <MoreVertIcon />
+                                                </IconButton>
+                                            </ListItemButton>
+                                        </ListItem>
+
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))}
 
                         <Button
-                            fullWidth
+
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            sx={{ mt: 1, textTransform: "none" }}
+                            sx={{ mt: 1, textTransform: "none", mx: 3 }}
                             onClick={onAddAccount}
-
                         >
                             Add Account
                         </Button>
                     </List>
                 ) : (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
                         No accounts found. Add one to get started.
                     </Typography>
                 )}
 
-                <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 2, mx: 3 }} />
 
-                <Button fullWidth variant="contained" sx={{ mb: 1, textTransform: "none" }}>
-                    Add new wallet
+                <Button
+
+                    variant="contained"
+                    sx={{ mb: 1, textTransform: "none", mx: 3 }}
+                    onClick={() => {
+                        setImportModalOpen(true);
+                        onClose();
+                    }}
+                >
+                    Import Wallet
                 </Button>
-                <Button fullWidth variant="outlined" sx={{ textTransform: "none" }}>
+
+                <Button variant="outlined" sx={{ textTransform: "none", mx: 3 }}>
                     Manage wallets
                 </Button>
             </DialogContent>
+
+            {/* Account Menu */}
+            <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={handleMenuClose}
+            >
+                <MenuItem
+                    onClick={() => {
+                        handleCopyAddress(menuAccount?.chains?.[0]?.address || "");
+                        handleMenuClose();
+                    }}
+                >
+                    Copy Address
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        console.log("View details of", menuAccount);
+                        handleMenuClose();
+                    }}
+                >
+                    View Details
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        console.log("Remove account", menuAccount);
+                        handleMenuClose();
+                    }}
+                >
+                    Remove Account
+                </MenuItem>
+            </Menu>
         </Dialog>
     );
 }
