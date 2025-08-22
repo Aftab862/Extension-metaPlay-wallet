@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
     Box,
     Typography,
@@ -14,8 +14,6 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import MenuIcon from "@mui/icons-material/Menu";
-
-import { EVM_CHAINS } from "../config/chain";
 import ChainSelectorModal from "../components/ChainSelectorModal";
 import AccountSelectorModal from "../components/AccountSelectorModal";
 import { mapColors } from "../utils/helper";
@@ -24,6 +22,7 @@ import ImportWalletModal from "../components/ImportWalletModal";
 import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
+import { initChains } from "../utils/storage";
 
 const fmt = (value, decimals = 4) => {
     const num = Number(value);
@@ -46,13 +45,36 @@ const WalletDashboard = ({
     setSelectedWalletIndex,
     setSelectedAccountIndex,
     setWallets,
-    loading = false
+
 }) => {
     const [chainModalOpen, setChainModalOpen] = useState(false);
     const [accountModalOpen, setAccountModalOpen] = useState(false);
-    const [selectedChain, setSelectedChain] = useState(EVM_CHAINS?.[0] || { name: "", nativeSymbol: "" });
+    const [selectedChain, setSelectedChain] = useState();
     const [importModalOpen, setImportModalOpen] = React.useState(false);
+    const [allChains, setAllChains] = useState([])
     const [step, setStep] = React.useState(false);
+    const [loading, setLoading] = useState(false);
+    const [referesh, setReferesh] = useState(false);
+
+
+
+
+    const GetChains = () => {
+        const response = initChains();
+        if (response) return response;
+        return null;
+    }
+    console.log("refersh :", referesh)
+    useEffect(() => {
+        setLoading(true);
+        const result = GetChains();
+        setAllChains(result);
+        console.log("result", result)
+        setSelectedChain(result[0]);
+        setLoading(false);
+
+    }, [referesh])
+
 
     const [chainBalances, setChainBalances] = useState({
         native: "0",
@@ -262,25 +284,25 @@ const WalletDashboard = ({
                     {/* Assets */}
                     <Box p={1}>
                         <Box display="flex" p={1} alignItems="center" sx={{ mt: 5 }}>
-                            <Avatar sx={{ fontSize: "10px", bgcolor: mapColors(selectedChain.nativeSymbol), mr: 2 }}>
-                                {selectedChain.nativeSymbol}
+                            <Avatar sx={{ fontSize: "10px", bgcolor: mapColors(selectedChain?.nativeSymbol), mr: 2 }}>
+                                {selectedChain?.nativeSymbol}
                             </Avatar>
                             <Box flexGrow={1}>
-                                <Typography fontWeight="bold">{selectedChain.name}</Typography>
+                                <Typography fontWeight="bold">{selectedChain?.name}</Typography>
                                 <Typography fontSize="0.8rem" color="gray">
                                     {evmAddress ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}` : "No address"}
                                 </Typography>
                             </Box>
                             <Box textAlign="right">
                                 <Typography fontWeight="bold">
-                                    {fmt(chainBalances.native)} {selectedChain.nativeSymbol}
+                                    {fmt(chainBalances?.native)} {selectedChain?.nativeSymbol}
                                 </Typography>
                                 <Typography fontSize="0.8rem" color="gray">Native</Typography>
                             </Box>
                         </Box>
 
                         <Box mt={0.5} p={2}>
-                            {chainBalances.loading ? (
+                            {chainBalances?.loading ? (
                                 <Loader message="Loading tokens..." />
                             ) : chainBalances.tokens.length > 0 ? (
                                 chainBalances.tokens.map((t) => (
@@ -317,9 +339,11 @@ const WalletDashboard = ({
                 <ChainSelectorModal
                     open={chainModalOpen}
                     onClose={() => setChainModalOpen(false)}
-                    chains={EVM_CHAINS || []}
+                    chains={allChains || []}
                     selectedChain={selectedChain}
                     onSelect={setSelectedChain}
+                    setReferesh={setReferesh}
+                    referesh={referesh}
                 />
             )}
             {accountModalOpen && selectedWallet && (
