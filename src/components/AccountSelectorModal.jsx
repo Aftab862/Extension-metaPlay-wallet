@@ -17,7 +17,8 @@ import {
     Menu,
     MenuItem,
     Tooltip,
-    ListItemButton
+    ListItemButton,
+    DialogActions
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import WalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -65,10 +66,11 @@ export default function AccountSelectorModal({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 1
+                    gap: 1,
+                    padding: "18px 18px 0px  18px"
                 }}
             >
-                <Typography variant="h6">
+                <Typography variant="h6" >
                     {wallet ? `Wallets` : "Accounts"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -119,6 +121,9 @@ export default function AccountSelectorModal({
                                                         },
                                                         "& .MuiSvgIcon-root": {
                                                             color: "white",
+                                                        },
+                                                        "&:hover": {
+                                                            backgroundColor: "primary.main",
                                                         }
                                                     },
                                                     "&:hover": {
@@ -154,15 +159,7 @@ export default function AccountSelectorModal({
                             </React.Fragment>
                         ))}
 
-                        <Button
 
-                            variant="outlined"
-                            startIcon={<AddIcon />}
-                            sx={{ mt: 1, textTransform: "none", mx: 3 }}
-                            onClick={onAddAccount}
-                        >
-                            Add Account
-                        </Button>
                     </List>
                 ) : (
                     <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
@@ -172,22 +169,40 @@ export default function AccountSelectorModal({
 
                 <Divider sx={{ my: 2, mx: 3 }} />
 
-                <Button
 
-                    variant="contained"
-                    sx={{ mb: 1, textTransform: "none", mx: 3 }}
-                    onClick={() => {
-                        setImportModalOpen(true);
-                        onClose();
-                    }}
-                >
-                    Import Wallet
-                </Button>
-
+                {/* 
                 <Button variant="outlined" sx={{ textTransform: "none", mx: 3 }}>
                     Manage wallets
-                </Button>
+                </Button> */}
             </DialogContent>
+
+
+            <DialogActions>
+
+                <Box display="flex" justifyContent="space-between" gap={2} paddingY={1}>
+                    <Button
+
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        sx={{ textTransform: "none" }}
+                        onClick={onAddAccount}
+                    >
+                        Add Account
+                    </Button>
+
+                    <Button
+
+                        variant="contained"
+                        sx={{ textTransform: "none", }}
+                        onClick={() => {
+                            setImportModalOpen(true);
+                            onClose();
+                        }}
+                    >
+                        Import Wallet
+                    </Button>
+                </Box>
+            </DialogActions>
 
             {/* Account Menu */}
             <Menu
@@ -223,3 +238,5 @@ export default function AccountSelectorModal({
         </Dialog>
     );
 }
+
+
