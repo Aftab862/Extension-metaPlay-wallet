@@ -23,6 +23,7 @@ import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import { initChains } from "../utils/storage";
+import DashboardTabs from "../components/DashboardTabs";
 
 const fmt = (value, decimals = 4) => {
     const num = Number(value);
@@ -85,7 +86,7 @@ const WalletDashboard = ({
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
     const selectedAccount = selectedWallet?.accounts?.[selectedAccountIndex] || null;
-
+    console.log("Selected Account : ", selectedAccount)
     const evmAddress = useMemo(
         () => selectedAccount?.chains?.find(c => c.type === "evm")?.address || null,
         [selectedAccount]
@@ -282,6 +283,9 @@ const WalletDashboard = ({
                     </Grid>
 
                     {/* Assets */}
+                    {/* <DashboardTabs /> */}
+
+
                     <Box p={1}>
                         <Box display="flex" p={1} alignItems="center" sx={{ mt: 5 }}>
                             <Avatar sx={{ fontSize: "10px", bgcolor: mapColors(selectedChain?.nativeSymbol), mr: 2 }}>
@@ -290,7 +294,7 @@ const WalletDashboard = ({
                             <Box flexGrow={1}>
                                 <Typography fontWeight="bold">{selectedChain?.name}</Typography>
                                 <Typography fontSize="0.8rem" color="gray">
-                                    {evmAddress ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}` : "No address"}
+                                    {evmAddress ? `${evmAddress?.slice(0, 6)}...${evmAddress?.slice(-4)}` : "No address"}
                                 </Typography>
                             </Box>
                             <Box textAlign="right">
@@ -300,12 +304,10 @@ const WalletDashboard = ({
                                 <Typography fontSize="0.8rem" color="gray">Native</Typography>
                             </Box>
                         </Box>
-
+                        {console.log("selected chain : ", selectedChain?.tokens)}
                         <Box mt={0.5} p={2}>
-                            {chainBalances?.loading ? (
-                                <Loader message="Loading tokens..." />
-                            ) : chainBalances.tokens.length > 0 ? (
-                                chainBalances.tokens.map((t) => (
+                            {selectedChain?.tokens.length > 0 ? (
+                                selectedChain?.tokens.map((t) => (
                                     <Box
                                         key={t.address}
                                         display="flex"
@@ -316,12 +318,12 @@ const WalletDashboard = ({
                                     >
                                         <Box>
                                             <Typography fontWeight="bold">{t.symbol}</Typography>
-                                            <Typography fontSize="0.8rem" color="gray">
-                                                {t.address.slice(0, 6)}...{t.address.slice(-4)}
-                                            </Typography>
+                                            {t?.address && <Typography fontSize="0.8rem" color="gray">
+                                                {t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
+                                            </Typography>}
                                         </Box>
                                         <Box textAlign="right">
-                                            <Typography>{fmt(t.balance)}</Typography>
+                                            {/* <Typography>{fmt(t.balance)}</Typography> */}
                                         </Box>
                                     </Box>
                                 ))
