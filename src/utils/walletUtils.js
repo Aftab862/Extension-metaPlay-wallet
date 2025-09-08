@@ -11,37 +11,49 @@ const WALLET_DATA_KEY = "wallet-data";
 
 /* ========================= Existing (kept) ========================= */
 
-export const generateMnemonic = () => {
-    const wallet = Wallet.createRandom();
-    if (!wallet.mnemonic?.phrase) throw new Error("Mnemonic generation failed.");
-    return wallet.mnemonic.phrase;
-};
-
-export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
+// Create first account under current mnemonic
+async function generateEvmWallet(mnemonicPhrase, index = 0) {
     const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase);
-
-    // EVM
-    const evmPath = `m/44'/60'/0'/0/${index}`;
-    const evmWallet = HDNodeWallet.fromMnemonic(mnemonic, evmPath);
-
-    // Solana
-    const solanaPath = `m/44'/501'/${index}'/0'`;
-    const seed = await bip39.mnemonicToSeed(mnemonicPhrase);
-    const { key } = ed25519.derivePath(solanaPath, seed.toString("hex"));
-    const solanaKeypair = Keypair.fromSeed(key.slice(0, 32));
+    const path = `m/44'/60'/0'/0/${index}`;
+    const wallet = HDNodeWallet.fromMnemonic(mnemonic, path);
 
     return {
-        evm: {
-            address: evmWallet.address,
-            privateKey: evmWallet.privateKey,
-        },
-        solana: {
-            address: solanaKeypair.publicKey.toBase58(),
-            privateKey: Buffer.from(solanaKeypair.secretKey).toString("hex"),
-        },
+        address: wallet.address,
+        privateKey: wallet.privateKey,
     };
 }
 
+/**
+ * Generate a Solana wallet from a mnemonic phrase.
+ */
+async function generateSolanaWallet(mnemonicPhrase, index = 0) {
+    const path = `m/44'/501'/${index}'/0'`;
+    const seed = await bip39.mnemonicToSeed(mnemonicPhrase);
+    const { key } = ed25519.derivePath(path, seed.toString("hex"));
+    const keypair = Keypair.fromSeed(key.slice(0, 32));
+
+    return {
+        address: keypair.publicKey.toBase58(),
+        privateKey: Buffer.from(keypair.secretKey).toString("hex"),
+    };
+}
+
+/**
+ * Generate both EVM and Solana wallets for a given mnemonic and index.
+ */
+export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
+    const [evm, solana] = await Promise.all([
+        generateEvmWallet(mnemonicPhrase, index),
+        generateSolanaWallet(mnemonicPhrase, index),
+    ]);
+    console.log("evm solana : ", evm, solana)
+
+    return { evm, solana };
+}
+
+/**
+ * Normalize wallet object into a standard structure.
+ */
 export function normalizeWalletObject(walletObj, index) {
     return {
         accountIndex: index,
@@ -52,6 +64,20 @@ export function normalizeWalletObject(walletObj, index) {
         })),
     };
 }
+
+/**
+ * Create the initial nested state with one wallet and one account.
+ */
+export const createInitialNestedState = async (mnemonicPhrase) => {
+    const firstWallet = await generateWalletFromMnemonic(mnemonicPhrase, 0);
+    const normalized = normalizeWalletObject(firstWallet, 0);
+
+    return {
+        wallets: [{ accounts: [normalized] }],
+        selectedWalletIndex: 0,
+        selectedAccountIndex: 0,
+    };
+};
 
 // export function normalizeWalletObject(wallet, index) {
 //     return {
@@ -109,16 +135,13 @@ export const loadWalletState = () => {
     return raw ? ensureNestedShape(raw) : null;
 };
 
-// Create first account under current mnemonic
-export const createInitialNestedState = async (mnemonicPhrase) => {
-    const first = await generateWalletFromMnemonic(mnemonicPhrase, 0);
-    const normalized = normalizeWalletObject(first, 0);
-    return {
-        wallets: [{ accounts: [normalized] }],
-        selectedWalletIndex: 0,
-        selectedAccountIndex: 0,
-    };
+
+
+
+
+
+export const generateMnemonic = () => {
+    const wallet = Wallet.createRandom();
+    if (!wallet.mnemonic?.phrase) throw new Error("Mnemonic generation failed.");
+    return wallet.mnemonic.phrase;
 };
-
-
-
