@@ -1,18 +1,17 @@
-import { Wallet, HDNodeWallet, Mnemonic, keccak256 } from "ethers";
+import { Wallet, HDNodeWallet, Mnemonic } from "ethers";
 import * as bip39 from "bip39";
 import { Keypair } from "@solana/web3.js";
 import { derivePath } from "ed25519-hd-key";
-
 import { Buffer } from "buffer";
 import { loadFromLocalStorage, saveToLocalStorage } from "./storage";
-import * as crypto from "crypto"
-import bs58 from "bs58"
-
-window.Buffer = Buffer;
-
+import { BIP32Factory } from 'bip32'
+import * as bitcoin from 'bitcoinjs-lib'
+import * as ecc from '@bitcoinerlab/secp256k1'
+import { TronWeb } from "tronweb";
+window.Buffer = Buffer
+const bip32 = BIP32Factory(ecc)
+const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' })
 const WALLET_DATA_KEY = "wallet-data";
-
-/* ========================= Existing (kept) ========================= */
 
 async function generateEvmWallet(mnemonicPhrase, index = 0) {
     const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase)
@@ -28,11 +27,8 @@ async function generateEvmWallet(mnemonicPhrase, index = 0) {
     }
 }
 
-/**
- * Generate a Solana wallet from a mnemonic phrase.
- */
 async function generateSolanaWallet(mnemonicPhrase, index = 0) {
-    const path = `m/44'/501'/${index}'/0'`
+    const path = `m/44'/501'/${index}'`;
     const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
     const { key } = derivePath(path, seed.toString("hex"))
     const keypair = Keypair.fromSeed(key.slice(0, 32))
@@ -46,78 +42,58 @@ async function generateSolanaWallet(mnemonicPhrase, index = 0) {
     }
 }
 
-/**
- * Generate a TRON wallet from a mnemonic phrase.
- */
 async function generateTronWallet(mnemonicPhrase, index = 0) {
-    const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase)
-    // TRON uses coin type 195 in BIP44 path
-    const path = `m/44'/195'/0'/0/${index}`
-    const wallet = HDNodeWallet.fromMnemonic(mnemonic, path)
 
-    // TRON address generation from public key
-    const publicKeyBytes = Buffer.from(wallet.publicKey.slice(2), "hex")
-    const addressBytes = Buffer.from(keccak256(publicKeyBytes).slice(2), "hex")
-    const addressHex = "41" + addressBytes.slice(-20).toString("hex")
+    const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
+    const root = bip32.fromSeed(seed)
 
-    // Base58Check encoding for TRON address
-    const hash1 = crypto.createHash("sha256").update(Buffer.from(addressHex, "hex")).digest()
-    const hash2 = crypto.createHash("sha256").update(hash1).digest()
-    const checksum = hash2.slice(0, 4)
-    const addressWithChecksum = Buffer.concat([Buffer.from(addressHex, "hex"), checksum])
 
-    // Use proper Base58 encoding
-    const address = bs58.encode(addressWithChecksum)
+    const path = `m/44'/195'/0'/0/${index}`;
+    const child = root.derivePath(path);
+
+
+    const privateKey = Buffer.from(child.privateKey).toString('hex')
+    const publicKey = Buffer.from(child.publicKey).toString('hex')
+
+
+    const address = tronWeb.address.fromPrivateKey(privateKey)
 
     return {
-        chainType: "TRON",
-        address: address,
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey,
-        derivationPath: path,
+        chainType: 'tron',
+        address,
+        privateKey,
+        publicKey,
+        derivationPath: path
     }
 }
 
-/**
- * Generate a Bitcoin wallet from a mnemonic phrase.
- */
 async function generateBitcoinWallet(mnemonicPhrase, index = 0) {
-    const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase)
-    // Bitcoin uses coin type 0 in BIP44 path
-    const path = `m/44'/0'/0'/0/${index}`
-    const wallet = HDNodeWallet.fromMnemonic(mnemonic, path)
+    // 1. Convert mnemonic → seed
+    const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
+    const root = bip32.fromSeed(seed)
 
-    // Bitcoin address generation (P2PKH format)
-    const publicKeyBytes = Buffer.from(wallet.publicKey.slice(2), "hex")
+    // 2. Use the dynamic index
+    const path = `m/84'/0'/0'/0/${index}`
+    const child = root.derivePath(path)
 
-    // SHA256 then RIPEMD160 hash of public key
-    const sha256Hash = crypto.createHash("sha256").update(publicKeyBytes).digest()
-    const ripemd160Hash = crypto.createHash("ripemd160").update(sha256Hash).digest()
+    // 3. Keys
+    const privateKey = Buffer.from(child.privateKey).toString('hex')
+    const publicKey = Buffer.from(child.publicKey).toString('hex')
 
-    // Add version byte (0x00 for mainnet P2PKH)
-    const versionedHash = Buffer.concat([Buffer.from([0x00]), ripemd160Hash])
-
-    // Double SHA256 for checksum
-    const checksum1 = crypto.createHash("sha256").update(versionedHash).digest()
-    const checksum2 = crypto.createHash("sha256").update(checksum1).digest()
-    const checksum = checksum2.slice(0, 4)
-
-    // Final address with checksum
-    const addressBytes = Buffer.concat([versionedHash, checksum])
-    const address = bs58.encode(addressBytes)
+    // 4. Address
+    const { address } = bitcoin.payments.p2wpkh({
+        pubkey: Buffer.from(child.publicKey)
+    })
 
     return {
-        chainType: "Bitcoin",
-        address: address,
-        privateKey: wallet.privateKey,
-        publicKey: wallet.publicKey,
-        derivationPath: path,
+        chainType: 'bitcoin',
+        address,
+        privateKey,
+        publicKey,
+        derivationPath: path
     }
 }
 
-/**
- * Generate EVM, Solana, TRON, and Bitcoin wallets for a given mnemonic and index.
- */
 export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
     const [evm, solana, tron, bitcoin] = await Promise.all([
         generateEvmWallet(mnemonicPhrase, index),
@@ -125,15 +101,9 @@ export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
         generateTronWallet(mnemonicPhrase, index),
         generateBitcoinWallet(mnemonicPhrase, index),
     ])
-    console.log("evm solana tron bitcoin: ", evm, solana, tron, bitcoin)
-
     return { evm, solana, tron, bitcoin }
 }
 
-
-/**
- * Normalize wallet object into a standard structure.
- */
 export function normalizeWalletObject(walletObj, index) {
     return {
         accountIndex: index,
@@ -145,9 +115,6 @@ export function normalizeWalletObject(walletObj, index) {
     };
 }
 
-/**
- * Create the initial nested state with one wallet and one account.
- */
 export const createInitialNestedState = async (mnemonicPhrase) => {
     const firstWallet = await generateWalletFromMnemonic(mnemonicPhrase, 0);
     const normalized = normalizeWalletObject(firstWallet, 0);
@@ -159,25 +126,6 @@ export const createInitialNestedState = async (mnemonicPhrase) => {
     };
 };
 
-// export function normalizeWalletObject(wallet, index) {
-//     return {
-//         accountIndex: index,
-//         chains: [
-//             {
-//                 type: "evm",
-//                 address: wallet.address,
-//                 privateKey: wallet.privateKey,
-//             },
-//         ],
-//     };
-// }
-
-
-
-/* ========================= New Helpers ========================= */
-
-// Legacy flat shape?
-// { wallets: [ { accountIndex, chains: [...] }, ... ], selectedIndex, accountCount }
 export const isLegacyShape = (data) =>
     !!data &&
     Array.isArray(data.wallets) &&
@@ -185,8 +133,6 @@ export const isLegacyShape = (data) =>
     typeof data.wallets[0]?.accountIndex === "number" &&
     Array.isArray(data.wallets[0]?.chains);
 
-// Normalize any stored shape to the new nested layout:
-// { wallets: [ { accounts: [...] } ], selectedWalletIndex, selectedAccountIndex }
 export const ensureNestedShape = (raw) => {
     if (!raw) return null;
 
@@ -214,11 +160,6 @@ export const loadWalletState = () => {
     const raw = loadFromLocalStorage(WALLET_DATA_KEY);
     return raw ? ensureNestedShape(raw) : null;
 };
-
-
-
-
-
 
 export const generateMnemonic = () => {
     const wallet = Wallet.createRandom();
