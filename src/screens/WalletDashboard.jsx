@@ -34,8 +34,8 @@ const fmt = (value, decimals = 4) => {
 const actionItems = [
     { label: "Send", icon: <ArrowUpwardIcon /> },
     { label: "Receive", icon: <ArrowDownwardIcon /> },
-    { label: "Buy", icon: <ShoppingCartIcon /> },
-    { label: "Swap", icon: <SwapHorizIcon /> },
+    // { label: "Buy", icon: <ShoppingCartIcon /> },
+    // { label: "Swap", icon: <SwapHorizIcon /> },
 ];
 
 const WalletDashboard = ({
@@ -261,12 +261,13 @@ const WalletDashboard = ({
                     </Box>
 
                     {/* Actions */}
-                    <Grid p={1} container spacing={2} textAlign="center">
+                    <Grid p={1} container spacing={2} textAlign="center" justifyContent="space-evenly" >
                         {actionItems.map((item, index) => (
                             <Grid key={index} item xs={3}
                                 display="flex"
                                 flexDirection="column"
                                 alignItems="center"
+                                justifyContent="space-evenly"
                             >
                                 <Avatar sx={{ bgcolor: "#1976d2" }}>{item.icon}</Avatar>
                                 <Typography>{item.label}</Typography>
@@ -275,7 +276,7 @@ const WalletDashboard = ({
                     </Grid>
 
                     {/* Assets */}
-                    {/* <DashboardTabs /> */}
+                    <DashboardTabs />
 
 
                     <Box p={1}>

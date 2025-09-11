@@ -24,8 +24,8 @@ function a11yProps(index) {
 }
 
 // Example placeholder components
-const Tokens = () => <div>Your Tokens Component</div>;
-const Activity = () => <div>Your Activity Component</div>;
+const Tokens = () => <div> Tokens Component</div>;
+const Activity = () => <div> Activity Component</div>;
 
 export default function DashboardTabs() {
     const [activeTab, setActiveTab] = useState(0);
