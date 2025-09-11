@@ -95,13 +95,16 @@ async function generateBitcoinWallet(mnemonicPhrase, index = 0) {
 }
 
 export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
-    const [evm, solana, tron, bitcoin] = await Promise.all([
-        generateEvmWallet(mnemonicPhrase, index),
-        generateSolanaWallet(mnemonicPhrase, index),
-        generateTronWallet(mnemonicPhrase, index),
-        generateBitcoinWallet(mnemonicPhrase, index),
-    ])
-    return { evm, solana, tron, bitcoin }
+    // const [evm, solana, tron, bitcoin] = await Promise.all([
+    //     generateEvmWallet(mnemonicPhrase, index),
+    //     generateSolanaWallet(mnemonicPhrase, index),
+    //     generateTronWallet(mnemonicPhrase, index),
+    //     generateBitcoinWallet(mnemonicPhrase, index),
+    // ])
+    // return { evm, solana, tron, bitcoin }
+    const evm = await generateEvmWallet(mnemonicPhrase, index);
+    return { evm };
+
 }
 
 export function normalizeWalletObject(walletObj, index) {

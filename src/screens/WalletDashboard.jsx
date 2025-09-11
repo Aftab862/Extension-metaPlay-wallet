@@ -22,7 +22,6 @@ import ImportWalletModal from "../components/ImportWalletModal";
 import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
-import { initChains } from "../utils/storage";
 import DashboardTabs from "../components/DashboardTabs";
 
 const fmt = (value, decimals = 4) => {
@@ -46,35 +45,19 @@ const WalletDashboard = ({
     setSelectedWalletIndex,
     setSelectedAccountIndex,
     setWallets,
-
+    loading,
+    allChains,
+    referesh,
+    setReferesh,
+    setSelectedChain,
+    selectedChain
 }) => {
     const [chainModalOpen, setChainModalOpen] = useState(false);
     const [accountModalOpen, setAccountModalOpen] = useState(false);
-    const [selectedChain, setSelectedChain] = useState();
     const [importModalOpen, setImportModalOpen] = React.useState(false);
-    const [allChains, setAllChains] = useState([])
     const [step, setStep] = React.useState(false);
-    const [loading, setLoading] = useState(false);
-    const [referesh, setReferesh] = useState(false);
 
 
-
-
-    const GetChains = () => {
-        const response = initChains();
-        if (response) return response;
-        return null;
-    }
-    console.log("refersh :", referesh)
-    useEffect(() => {
-        setLoading(true);
-        const result = GetChains();
-        setAllChains(result);
-        console.log("result", result)
-        setSelectedChain(result[0]);
-        setLoading(false);
-
-    }, [referesh])
 
 
     const [chainBalances, setChainBalances] = useState({

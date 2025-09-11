@@ -41,7 +41,7 @@ import {
 
 import Loader from "./components/Loader";
 import ImportWalletScreen from "./screens/ImportWallet";
-import { saveToLocalStorage } from "./utils/storage";
+import { initChains, saveToLocalStorage } from "./utils/storage";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
@@ -59,9 +59,28 @@ const App = () => {
     const [wallets, setWallets] = useState([]);
     const [selectedWalletIndex, setSelectedWalletIndex] = useState(0);
     const [selectedAccountIndex, setSelectedAccountIndex] = useState(0);
-
+    const [referesh, setReferesh] = useState(false);
+    const [allChains, setAllChains] = useState([])
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [selectedChain, setSelectedChain] = useState();
+
+
+    const GetChains = () => {
+        const response = initChains();
+        if (response) return response;
+        return null;
+    }
+    useEffect(() => {
+        setLoading(true);
+        const result = GetChains();
+        setAllChains(result);
+        console.log("result", result)
+        setSelectedChain(result[0]);
+        setLoading(false);
+
+    }, [referesh])
+
 
     /* Session housekeeping */
     useEffect(() => {
@@ -166,6 +185,8 @@ const App = () => {
         const currentWallet = wallets[selectedWalletIndex];
         const newIndex = currentWallet.accounts.length;
 
+
+
         const newAccount = await generateWalletFromMnemonic(mnemonic, newIndex);
         const normalized = normalizeWalletObject(newAccount, newIndex);
 
@@ -247,6 +268,11 @@ const App = () => {
                         setSelectedWalletIndex={setSelectedWalletIndex}
                         // Optional: keep this for backward-compat if your Dashboard still expects it
                         selectedIndex={memoSelA}
+                        allChains={allChains}
+                        referesh={referesh}
+                        setReferesh={setReferesh}
+                        selectedChain={selectedChain}
+                        setSelectedChain={setSelectedChain}
                     />
                 )}
             </Suspense>
