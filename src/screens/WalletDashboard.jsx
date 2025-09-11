@@ -23,6 +23,8 @@ import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import DashboardTabs from "../components/DashboardTabs";
+import { SESSION_PASSWORD_KEY } from "../utils/keys";
+import { encryptMnemonic } from "../utils/cryptoUtils";
 
 const fmt = (value, decimals = 4) => {
     const num = Number(value);
@@ -96,7 +98,6 @@ const WalletDashboard = ({
 
             // derive first account
             const firstAccount = await generateWalletFromMnemonic(mnemonicFromUser, 0);
-            const newAddress = firstAccount.evm.address;
 
             // check duplicates
             // check duplicates (normalize for case-insensitive match)
@@ -112,12 +113,20 @@ const WalletDashboard = ({
                 return;
             }
 
+            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+            const decoded = atob(sessionPassword);
+            const encryptedMenmonic = encryptMnemonic(mnemonicFromUser, decoded);
+
             // add new wallet with mnemonic stored
             const normalized = normalizeWalletObject(firstAccount, 0);
             const newWalletIndex = currentWallets.length;
             const updatedWallets = [
                 ...currentWallets,
-                { mnemonic: mnemonicFromUser.trim(), accounts: [normalized] }
+                {
+                    walletType: "import_seed",
+                    mnemonic: encryptedMenmonic,
+                    accounts: [normalized],
+                }
             ];
 
 
@@ -175,7 +184,7 @@ const WalletDashboard = ({
             const newWalletIndex = currentWallets.length;
             const updatedWallets = [
                 ...currentWallets,
-                { accounts: [normalized] }
+                { mnemonic: null, walletType: "import_pk", accounts: [normalized] }
             ];
 
             setWallets(updatedWallets);

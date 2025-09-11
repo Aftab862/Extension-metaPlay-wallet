@@ -1,35 +1,8 @@
-
-// import { Container } from '@mui/material';
-// import React, { useEffect } from 'react'
-// import { generateWalletFromMnemonic } from './utils/walletUtils';
-// const mnemonic = "lunar innocent smart rare long sell cash hobby various render nest swap"
-// const App = () => {
-
-//     useEffect(() => {
-//         (async () => {
-//             const wallets = await generateWalletFromMnemonic(mnemonic);
-//             console.log("wallets:", wallets);
-//         })();
-//     }, []);
-
-
-//     return (
-//         <Container sx={{ my: 2, width: 360, py: 5 }}>
-//             <span>Testing</span>
-//         </Container>
-//     )
-// }
-
-// export default App;
-
-
 import React, { useEffect, useState, lazy, Suspense, useMemo, useCallback } from "react";
 import { Container } from "@mui/material";
 import { Wallet } from "ethers";
-
-import { encryptMnemonic, decryptMnemonic, isMnemonicStored } from "./utils/cryptoUtils";
+import { encryptMnemonic, decryptMnemonic, isWalletAvalailable } from "./utils/cryptoUtils";
 import { isSessionValid, saveLoginTime } from "./utils/sessionUtils";
-
 import {
     generateWalletFromMnemonic,
     normalizeWalletObject,
@@ -42,12 +15,12 @@ import {
 import Loader from "./components/Loader";
 import ImportWalletScreen from "./screens/ImportWallet";
 import { initChains, saveToLocalStorage } from "./utils/storage";
+import { SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
 const WelcomeScreen = lazy(() => import("./screens/Welcome"));
 
-const SESSION_PASSWORD_KEY = "session-password";
 
 const App = () => {
     const [step, setStep] = useState("checking");
@@ -90,14 +63,17 @@ const App = () => {
     /* Init on mount (with legacy migration) */
     useEffect(() => {
         const init = () => {
-            const stored = isMnemonicStored();
-            const saved = loadWalletState(); // already normalized (and migrates legacy)
+            const stored = isWalletAvalailable();
+            const saved = loadWalletState();
 
             if (stored && isSessionValid() && saved) {
                 const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
                 if (sessionPassword) {
                     const decoded = atob(sessionPassword);
-                    const decrypted = decryptMnemonic(decoded);
+                    let userMenemonics = saved?.wallets[0].mnemonic;
+
+                    const decrypted = decryptMnemonic(userMenemonics, decoded);
+
                     if (decrypted) {
                         setPassword(decoded);
                         setMnemonic(decrypted);
@@ -126,35 +102,28 @@ const App = () => {
             setError("Password is required.");
             return;
         }
+        const saved = loadWalletState();
+        let userMenemonics = saved?.wallets[0].mnemonic;
 
-        const hasEncrypted = localStorage.getItem("encrypted-mnemonic");
+        if (saved) {
 
-        if (hasEncrypted) {
             // existing user
-            const decrypted = decryptMnemonic(inputPassword);
+            const decrypted = decryptMnemonic(userMenemonics, inputPassword);
             if (!decrypted) {
                 setError("Invalid password.");
                 return;
             }
 
+
             localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
             saveLoginTime();
             setPassword(inputPassword);
             setMnemonic(decrypted);
+            setWallets(saved.wallets);
+            setSelectedWalletIndex(saved.selectedWalletIndex);
+            setSelectedAccountIndex(saved.selectedAccountIndex);
+            persistWalletState(saved.wallets, saved.selectedWalletIndex, saved.selectedAccountIndex);
 
-            const saved = loadWalletState();
-            if (saved) {
-                setWallets(saved.wallets);
-                setSelectedWalletIndex(saved.selectedWalletIndex);
-                setSelectedAccountIndex(saved.selectedAccountIndex);
-                persistWalletState(saved.wallets, saved.selectedWalletIndex, saved.selectedAccountIndex);
-            } else {
-                const initial = await createInitialNestedState(decrypted);
-                setWallets(initial.wallets);
-                setSelectedWalletIndex(0);
-                setSelectedAccountIndex(0);
-                persistWalletState(initial.wallets, 0, 0);
-            }
             setStep("main");
         } else {
             // first-time create
@@ -163,7 +132,7 @@ const App = () => {
             setPassword(inputPassword);
             encryptMnemonic(mnemonic, inputPassword);
 
-            const initial = await createInitialNestedState(mnemonic);
+            const initial = await createInitialNestedState(mnemonic, inputPassword);
             setWallets(initial.wallets);
             setSelectedWalletIndex(0);
             setSelectedAccountIndex(0);
@@ -185,9 +154,11 @@ const App = () => {
         const currentWallet = wallets[selectedWalletIndex];
         const newIndex = currentWallet.accounts.length;
 
+        const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+        const decoded = atob(sessionPassword);
+        const decrypted = decryptMnemonic(currentWallet?.mnemonic, decoded);
 
-
-        const newAccount = await generateWalletFromMnemonic(mnemonic, newIndex);
+        const newAccount = await generateWalletFromMnemonic(decrypted, newIndex);
         const normalized = normalizeWalletObject(newAccount, newIndex);
 
         const updatedWallets = wallets.map((w, i) =>

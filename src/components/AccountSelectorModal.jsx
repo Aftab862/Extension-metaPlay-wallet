@@ -42,6 +42,10 @@ export default function AccountSelectorModal({
         navigator.clipboard.writeText(address);
     };
 
+    const currentWallet = wallet[selectedWalletIndex];
+    const isAllow = currentWallet.walletType === "seed" || currentWallet.walletType === "import_seed";
+
+
     const handleMenuOpen = (event, account) => {
         setMenuAnchor(event.currentTarget);
         setMenuAccount(account);
@@ -183,9 +187,10 @@ export default function AccountSelectorModal({
                     <Button
 
                         variant="outlined"
+                        disabled={!isAllow}
                         startIcon={<AddIcon />}
-                        sx={{ textTransform: "none" }}
-                        onClick={onAddAccount}
+                        sx={{ cursor: isAllow ? "pointer" : "not-allowed", textTransform: "none" }}
+                        onClick={isAllow ? onAddAccount : null}
                     >
                         Add Account
                     </Button>

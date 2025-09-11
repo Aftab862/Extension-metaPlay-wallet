@@ -8,6 +8,7 @@ import { BIP32Factory } from 'bip32'
 import * as bitcoin from 'bitcoinjs-lib'
 import * as ecc from '@bitcoinerlab/secp256k1'
 import { TronWeb } from "tronweb";
+import { encryptMnemonic } from "./cryptoUtils";
 window.Buffer = Buffer
 const bip32 = BIP32Factory(ecc)
 const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' })
@@ -118,12 +119,13 @@ export function normalizeWalletObject(walletObj, index) {
     };
 }
 
-export const createInitialNestedState = async (mnemonicPhrase) => {
+export const createInitialNestedState = async (mnemonicPhrase, inputPassword) => {
     const firstWallet = await generateWalletFromMnemonic(mnemonicPhrase, 0);
     const normalized = normalizeWalletObject(firstWallet, 0);
+    const mnemonicFromUser = await encryptMnemonic(mnemonicPhrase, inputPassword);
 
     return {
-        wallets: [{ accounts: [normalized] }],
+        wallets: [{ mnemonic: mnemonicFromUser, walletType: "seed", accounts: [normalized] }],
         selectedWalletIndex: 0,
         selectedAccountIndex: 0,
     };

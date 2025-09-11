@@ -1,17 +1,13 @@
 // src/utils/cryptoUtils.js
 import CryptoJS from "crypto-js";
-
-const STORAGE_KEY = "encrypted-mnemonic"; // ✅ Unique and secure
+import { WALLET_DATA_KEY } from "./keys";
 
 export function encryptMnemonic(mnemonic, password) {
     const ciphertext = CryptoJS.AES.encrypt(mnemonic, password).toString();
-    console.log("encryptMnemonic called :", mnemonic, password, ciphertext,)
-    localStorage.setItem(STORAGE_KEY, ciphertext);
+    return ciphertext;
 }
 
-export function decryptMnemonic(password) {
-    const encrypted = localStorage.getItem(STORAGE_KEY);
-    if (!encrypted) return null;
+export function decryptMnemonic(encrypted, password) {
 
     try {
         const bytes = CryptoJS.AES.decrypt(encrypted, password);
@@ -22,6 +18,6 @@ export function decryptMnemonic(password) {
     }
 }
 
-export function isMnemonicStored() {
-    return !!localStorage.getItem(STORAGE_KEY);
+export function isWalletAvalailable() {
+    return !!localStorage.getItem(WALLET_DATA_KEY);
 }
