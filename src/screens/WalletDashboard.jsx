@@ -26,10 +26,6 @@ import DashboardTabs from "../components/DashboardTabs";
 import { SESSION_PASSWORD_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
 
-const fmt = (value, decimals = 4) => {
-    const num = Number(value);
-    return isFinite(num) ? num.toFixed(decimals) : "0.0000";
-};
 
 const actionItems = [
     { label: "Send", icon: <ArrowUpwardIcon /> },
@@ -276,56 +272,10 @@ const WalletDashboard = ({
                     </Grid>
 
                     {/* Assets */}
-                    <DashboardTabs />
-
-
-                    <Box p={1}>
-                        <Box display="flex" p={1} alignItems="center" sx={{ mt: 5 }}>
-                            <Avatar sx={{ fontSize: "10px", bgcolor: mapColors(selectedChain?.nativeSymbol), mr: 2 }}>
-                                {selectedChain?.nativeSymbol}
-                            </Avatar>
-                            <Box flexGrow={1}>
-                                <Typography fontWeight="bold">{selectedChain?.name}</Typography>
-                                <Typography fontSize="0.8rem" color="gray">
-                                    {evmAddress ? `${evmAddress?.slice(0, 6)}...${evmAddress?.slice(-4)}` : "No address"}
-                                </Typography>
-                            </Box>
-                            <Box textAlign="right">
-                                <Typography fontWeight="bold">
-                                    {fmt(chainBalances?.native)} {selectedChain?.nativeSymbol}
-                                </Typography>
-                                <Typography fontSize="0.8rem" color="gray">Native</Typography>
-                            </Box>
-                        </Box>
-                        {console.log("selected chain : ", selectedChain?.tokens)}
-                        <Box mt={0.5} p={2}>
-                            {selectedChain?.tokens.length > 0 ? (
-                                selectedChain?.tokens.map((t) => (
-                                    <Box
-                                        key={t.address}
-                                        display="flex"
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                        py={1}
-                                        borderBottom="1px solid #eee"
-                                    >
-                                        <Box>
-                                            <Typography fontWeight="bold">{t.symbol}</Typography>
-                                            {t?.address && <Typography fontSize="0.8rem" color="gray">
-                                                {t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
-                                            </Typography>}
-                                        </Box>
-                                        <Box textAlign="right">
-                                            {/* <Typography>{fmt(t.balance)}</Typography> */}
-                                        </Box>
-                                    </Box>
-                                ))
-                            ) : (
-                                <Typography color="text.secondary">No tokens found</Typography>
-                            )}
-                        </Box>
-                    </Box>
-
+                    <DashboardTabs
+                        setSelectedChain={setSelectedChain}
+                        selectedChain={selectedChain}
+                    />
                 </>
             )}
 

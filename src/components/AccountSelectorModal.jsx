@@ -23,6 +23,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import WalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { Close } from "@mui/icons-material";
 
 export default function AccountSelectorModal({
     open,
@@ -71,35 +72,28 @@ export default function AccountSelectorModal({
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 1,
-                    padding: "18px 18px 0px  18px"
+                    padding: "18px 18px 12px  18px"
                 }}
             >
                 <Typography variant="h6" >
                     {wallet ? `Wallets` : "Accounts"}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    ${totalUSD.toFixed(2)}
-                </Typography>
+                <Close onClick={() => onClose()} />
             </DialogTitle>
 
             <DialogContent sx={{ p: 0.5 }}>
+
                 {wallet && wallet.length > 0 ? (
                     <List>
                         {wallet.map((w, wIdx) => (
                             <React.Fragment key={wIdx}>
-                                <ListSubheader>{`Wallet ${wIdx + 1}`}</ListSubheader>
+                                <Divider sx={{ marginBottom: "15px" }} />
+                                <ListSubheader sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                                    <Typography sx={{ fontSize: "14px" }}>  {`Wallet ${wIdx + 1}`}</Typography>
+                                    <Typography sx={{ fontSize: "14px" }}>  {w?.walletType}  </Typography>
+                                </ListSubheader>
                                 {w.accounts.map((account, aIdx) => {
                                     const address = account.chains?.[0]?.address || "No address";
-                                    {
-                                        console.log(
-                                            "check:",
-                                            "wIdx=", wIdx,
-                                            "aIdx=", aIdx,
-                                            "selectedWalletIndex=", selectedWalletIndex,
-                                            "selectedAccountIndex=", selectedAccountIndex
-                                        )
-                                    }
-
                                     return (
                                         <ListItem
                                             key={aIdx}

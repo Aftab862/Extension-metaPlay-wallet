@@ -15,9 +15,11 @@ import {
     Box,
     DialogActions,
     ListItemButton,
+    Typography,
 } from "@mui/material";
 import { mapColors } from "../utils/helper";
 import { AddChainHandler } from "../utils/storage";
+import { Close } from "@mui/icons-material";
 
 export default function ChainSelectorModal({
     open,
@@ -29,11 +31,14 @@ export default function ChainSelectorModal({
     referesh
 }) {
     const [showForm, setShowForm] = useState(false);
+    const [error, setError] = useState(null);
     const [newChain, setNewChain] = useState({
         chainId: "",
         name: "",
         rpcUrl: "",
         nativeSymbol: "",
+        explorerUrl: ""
+
     });
 
 
@@ -43,22 +48,25 @@ export default function ChainSelectorModal({
             !newChain.chainId.trim() ||
             !newChain.name.trim() ||
             !newChain.rpcUrl.trim() ||
-            !newChain.nativeSymbol.trim()
+            !newChain.nativeSymbol.trim() ||
+            !newChain.explorerUrl.trim()
+
         ) {
-            alert("Please fill in all fields");
+            setError("Please fill in all fields");
             return;
         }
 
         const formatted = {
             ...newChain,
             chainId: parseInt(newChain.chainId, 10),
+            tokens: [],
         };
 
         console.log("formatted chain ", formatted)
 
         AddChainHandler(formatted);
         setReferesh(!referesh);
-        setNewChain({ chainId: "", name: "", rpcUrl: "", nativeSymbol: "" });
+        setNewChain({ chainId: "", name: "", rpcUrl: "", nativeSymbol: "", explorerUrl: "" });
         setShowForm(false);
     };
 
@@ -71,7 +79,20 @@ export default function ChainSelectorModal({
             scroll="paper"
             disableScrollLock
         >
-            <DialogTitle>Select network</DialogTitle>
+            <DialogTitle sx={{
+                pb: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+
+            }}>
+                <Typography variant="h6" >
+                    Select network
+                </Typography>
+
+
+                <Close onClick={() => onClose()} />
+            </DialogTitle>
             <DialogContent sx={{ px: 0 }}>
                 <List>
                     {!showForm ? <>
@@ -137,42 +158,57 @@ export default function ChainSelectorModal({
                         :
                         <Box p={2} display="flex" flexDirection="column" gap={2}>
                             <TextField
+                                label="Network Name"
+                                value={newChain.name}
+                                onChange={(e) => {
+                                    setNewChain({ ...newChain, name: e.target.value })
+                                    setError("");
+                                }}
+                                fullWidth
+                                size="small"
+                            />
+                            <TextField
+                                label="Default RPC URL"
+                                value={newChain.rpcUrl}
+                                onChange={(e) => {
+                                    setNewChain({ ...newChain, rpcUrl: e.target.value })
+                                    setError("");
+                                }}
+                                fullWidth
+                                size="small"
+                            />
+                            <TextField
                                 label="Chain ID"
                                 value={newChain.chainId}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                     setNewChain({ ...newChain, chainId: e.target.value })
-                                }
+                                    setError("");
+                                }}
                                 fullWidth
                                 size="small"
                             />
                             <TextField
-                                label="Name"
-                                value={newChain.name}
-                                onChange={(e) =>
-                                    setNewChain({ ...newChain, name: e.target.value })
-                                }
-                                fullWidth
-                                size="small"
-                            />
-                            <TextField
-                                label="RPC URL"
-                                value={newChain.rpcUrl}
-                                onChange={(e) =>
-                                    setNewChain({ ...newChain, rpcUrl: e.target.value })
-                                }
-                                fullWidth
-                                size="small"
-                            />
-                            <TextField
-                                label="Native Symbol"
+                                label="Currency symbol"
                                 value={newChain.nativeSymbol}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                     setNewChain({ ...newChain, nativeSymbol: e.target.value })
-                                }
+                                    setError("");
+                                }}
                                 fullWidth
                                 size="small"
                             />
 
+                            <TextField
+                                label="Block explorer URL"
+                                value={newChain.explorerUrl}
+                                onChange={(e) => {
+                                    setNewChain({ ...newChain, explorerUrl: e.target.value })
+                                    setError("");
+                                }}
+                                fullWidth
+                                size="small"
+                            />
+                            {error && <Typography textAlign="center" px={1} color="red">{error}</Typography>}
                             <Button variant="contained" onClick={handleAddChain}>
                                 Save Chain
                             </Button>
