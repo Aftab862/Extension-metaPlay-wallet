@@ -1,7 +1,5 @@
 import { EVM_CHAINS } from "../config/chain";
-
-// src/utils/storage
-const CHAINS_KEY = "chains-list";
+import { chainsList } from "./keys";
 
 export const saveToLocalStorage = (key, value) => {
     localStorage.setItem(key, JSON.stringify(value));
@@ -18,9 +16,9 @@ export const removeFromLocalStorage = (key) => {
 
 
 export const initChains = () => {
-    const existing = localStorage.getItem(CHAINS_KEY);
+    const existing = localStorage.getItem(chainsList);
     if (!existing) {
-        localStorage.setItem(CHAINS_KEY, JSON.stringify(EVM_CHAINS));
+        localStorage.setItem(chainsList, JSON.stringify(EVM_CHAINS));
         return EVM_CHAINS || [];
     }
     return existing ? JSON.parse(existing) : null
@@ -29,10 +27,10 @@ export const initChains = () => {
 
 
 export const AddChainHandler = (data) => {
-    const existing = loadFromLocalStorage(CHAINS_KEY) || [];
+    const existing = loadFromLocalStorage(chainsList) || [];
 
     const response = [...existing, data];
 
-    localStorage.setItem(CHAINS_KEY, JSON.stringify(response));
+    localStorage.setItem(chainsList, JSON.stringify(response));
     return true;
 }

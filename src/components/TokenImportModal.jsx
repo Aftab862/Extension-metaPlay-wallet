@@ -11,6 +11,9 @@ import {
     Paper,
 } from "@mui/material";
 import { ethers } from "ethers";
+import { chainsList, WALLET_DATA_KEY } from "../utils/keys";
+import { loadWalletState } from "../utils/walletUtils";
+import { loadFromLocalStorage } from "../utils/storage";
 
 const ERC20_ABI = [
     "function symbol() view returns (string)",
@@ -73,6 +76,12 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
         onClose();
     };
 
+    const handleSaveToken = () => {
+        const chains = loadFromLocalStorage(chainsList)
+        console.log("handle save token : ", chains);
+
+    }
+
     return (
         <Dialog open={open} onClose={handleClose} fullWidth>
             <DialogTitle>Import Token</DialogTitle>
@@ -97,8 +106,8 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
                         sx={{ p: 2, mt: 2, borderRadius: "12px", bgcolor: "#f9f9f9" }}
                     >
                         <Typography variant="h6">{importedToken.name}</Typography>
-                        <Typography variant="subtitle1" color="text.secondary">
-                            {importedToken.symbol}
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                            symbol:  {importedToken.symbol}
                         </Typography>
                         <Typography variant="body2" sx={{ mt: 1 }}>
                             Address: {importedToken.address.slice(0, 6)}...
@@ -107,7 +116,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
                         <Typography variant="body2" sx={{ mt: 1 }}>
                             Decimals: {importedToken.decimals}
                         </Typography>
-                        <Typography variant="body1" sx={{ mt: 1, fontWeight: "bold" }}>
+                        <Typography variant="body1" sx={{ mt: 1 }}>
                             Balance: {importedToken.balance}
                         </Typography>
                     </Paper>
@@ -115,9 +124,16 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={fetchTokenData} disabled={loading}>
-                    Import
-                </Button>
+                {importedToken ?
+                    <Button onClick={handleSaveToken} disabled={loading}>
+                        Save
+                    </Button>
+                    :
+                    <Button onClick={fetchTokenData} disabled={loading}>
+                        Import
+                    </Button>
+                }
+
             </DialogActions>
         </Dialog>
     );
