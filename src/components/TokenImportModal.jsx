@@ -11,7 +11,7 @@ import {
     Paper,
 } from "@mui/material";
 import { ethers } from "ethers";
-import { chainsList, WALLET_DATA_KEY } from "../utils/keys";
+import { CHAIN_ID, CHAIN_LIST, WALLET_DATA_KEY } from "../utils/keys";
 import { loadWalletState } from "../utils/walletUtils";
 import { loadFromLocalStorage } from "../utils/storage";
 
@@ -77,10 +77,25 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
     };
 
     const handleSaveToken = () => {
-        const chains = loadFromLocalStorage(chainsList)
-        console.log("handle save token : ", chains);
+        const chains = loadFromLocalStorage(CHAIN_LIST);
+        const cId = loadFromLocalStorage(CHAIN_ID);
+        const newToken = { ...importedToken };
+        console.log("new token : ", newToken);
+        // const hasSelectedChain = chains.map((res) => {
+
+        //   if(  res.chainId === cId){
+        //    [...chains , res.tokens[...res.tokens , ]   ]
+        //   }
+
+
+        // });
+
+        // symbol: "USDT", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6
+        // console.log("handle save token : ", hasSelectedChain);
 
     }
+
+
 
     return (
         <Dialog open={open} onClose={handleClose} fullWidth>

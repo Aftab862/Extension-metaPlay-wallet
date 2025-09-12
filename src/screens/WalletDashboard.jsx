@@ -23,8 +23,9 @@ import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import DashboardTabs from "../components/DashboardTabs";
-import { SESSION_PASSWORD_KEY } from "../utils/keys";
+import { CHAIN_ID, SESSION_PASSWORD_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
+import { saveToLocalStorage } from "../utils/storage";
 
 
 const actionItems = [
@@ -195,7 +196,10 @@ const WalletDashboard = ({
             alert("Invalid private key. Please try again.");
         }
     };
-
+    const handleChainSwitch = (userSelectedChain) => {
+        saveToLocalStorage(CHAIN_ID, userSelectedChain?.chainId)
+        setSelectedChain(userSelectedChain);
+    }
 
 
 
@@ -286,7 +290,7 @@ const WalletDashboard = ({
                     onClose={() => setChainModalOpen(false)}
                     chains={allChains || []}
                     selectedChain={selectedChain}
-                    onSelect={setSelectedChain}
+                    onSelect={handleChainSwitch}
                     setReferesh={setReferesh}
                     referesh={referesh}
                 />

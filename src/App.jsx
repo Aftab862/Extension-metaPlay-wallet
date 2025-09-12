@@ -14,8 +14,8 @@ import {
 
 import Loader from "./components/Loader";
 import ImportWalletScreen from "./screens/ImportWallet";
-import { initChains, saveToLocalStorage } from "./utils/storage";
-import { SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
+import { initChains, loadFromLocalStorage, saveToLocalStorage } from "./utils/storage";
+import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
@@ -44,21 +44,24 @@ const App = () => {
         if (response) return response;
         return null;
     }
+
+
     useEffect(() => {
         setLoading(true);
+        const cId = loadFromLocalStorage(CHAIN_ID)
         const result = GetChains();
+        const hasSelectedChain = result.find((res) => res.chainId === cId);
+
+
         setAllChains(result);
-        console.log("result", result)
-        setSelectedChain(result[0]);
+        console.log("result", hasSelectedChain, result)
+        setSelectedChain(hasSelectedChain ? hasSelectedChain : result[0]);
         setLoading(false);
 
     }, [referesh])
 
 
-    /* Session housekeeping */
-    useEffect(() => {
-        if (!isSessionValid()) localStorage.removeItem(SESSION_PASSWORD_KEY);
-    }, []);
+
 
     /* Init on mount (with legacy migration) */
     useEffect(() => {
