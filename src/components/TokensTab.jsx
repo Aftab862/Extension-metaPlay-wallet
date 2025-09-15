@@ -4,18 +4,23 @@ import {
     Menu,
     MenuItem,
     Typography,
+    CircularProgress
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { mapColors } from "../utils/helper";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import ImportTokenDialog from "./TokenImportModal";
+import { ethers } from "ethers";
+import { saveToLocalStorage } from "../utils/storage";
+import { CHAIN_LIST } from "../utils/keys";
 
 const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, setReferesh }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleMenuOpen = (event) => setMenuAnchor(event.currentTarget);
     const handleMenuClose = () => setMenuAnchor(null);
@@ -24,6 +29,81 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
         setImportOpen(true);
         handleMenuClose();
     };
+
+
+
+    useEffect(() => {
+        const fetchBalances = async () => {
+            console.log("▶ Fetching balances...");
+            console.log("User Wallet Address:", userWalletAddress);
+            console.log("Selected Chain:", selectedChain);
+
+            try {
+                if (!userWalletAddress || !selectedChain?.tokens?.length) {
+                    return;
+                }
+
+                setLoading(true);
+
+                const provider = new ethers.JsonRpcProvider(selectedChain.rpcUrl);
+                console.log("Provider initialized with RPC:", selectedChain.rpcUrl);
+
+                const updatedTokens = await Promise.all(
+                    selectedChain.tokens.map(async (t) => {
+                        console.log(`🔎 Fetching balance for token: ${t.symbol} at ${t.address}`);
+                        try {
+                            const contract = new ethers.Contract(
+                                t.address,
+                                ["function balanceOf(address owner) view returns (uint256)"],
+                                provider
+                            );
+
+                            const rawBalance = await contract.balanceOf(userWalletAddress);
+                            console.log(`${t.symbol} raw balance:`, rawBalance.toString());
+
+                            const formatted = ethers.formatUnits(rawBalance, t.decimals);
+                            console.log(`${t.symbol} formatted balance:`, formatted);
+
+                            return {
+                                ...t,
+                                balance: parseFloat(formatted).toFixed(4), // UI only
+                            };
+                        } catch (err) {
+                            console.error(`❌ Failed fetching balance for ${t.symbol}:`, err);
+                            return { ...t, balance: "0" };
+                        }
+                    })
+                );
+
+                console.log("✅ Updated tokens with balances:", updatedTokens);
+                setAllChains((prev) => {
+                    const newChains = prev.map((chain) =>
+                        chain.chainId === selectedChain.chainId
+                            ? { ...chain, tokens: updatedTokens }
+                            : chain
+                    );
+
+                    console.log("Final chains after update:", newChains);
+
+                    // Save outside but still inside this block
+                    saveToLocalStorage(CHAIN_LIST, newChains);
+
+                    return newChains;
+                });
+
+
+
+            } catch (err) {
+                console.error("❌ Error in fetchBalances:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBalances();
+    }, [userWalletAddress, setAllChains]);
+
+    console.log("selected chains in tokens tabs  : ", selectedChain.tokens);
 
     return (
         <div>
@@ -56,7 +136,11 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                 </Box>
 
                 <Box px={2}>
-                    {selectedChain?.tokens.length > 0 ? (
+                    {loading ? (
+                        <Box display="flex" justifyContent="center" py={3}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : selectedChain?.tokens.length > 0 ? (
                         selectedChain?.tokens.map((t) => (
                             <Box
                                 key={t.address}
@@ -76,6 +160,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                                 </Box>
                                 <Box textAlign="right">
                                     <Typography>{t.balance}</Typography>
+                                    <Typography>{t.symbol}</Typography>
                                 </Box>
                             </Box>
                         ))

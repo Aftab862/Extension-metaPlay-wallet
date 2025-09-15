@@ -58,6 +58,13 @@ const App = () => {
 
     }, [referesh])
 
+    useEffect(() => {
+        if (!allChains?.length) return;
+        const cId = loadFromLocalStorage(CHAIN_ID);
+        const hasSelectedChain = allChains.find((res) => res.chainId === cId);
+        setSelectedChain(hasSelectedChain ? hasSelectedChain : allChains[0]);
+    }, [allChains]);
+
 
 
 

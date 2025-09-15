@@ -43,24 +43,21 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
             const provider = new ethers.JsonRpcProvider(rpcUrl);
             const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
 
-            const [symbol, decimals, name, rawBalance] = await Promise.all([
+            const [symbol, decimals, name] = await Promise.all([
                 contract.symbol(),
                 contract.decimals(),
                 contract.name(),
-                userWalletAddress ? contract.balanceOf(userWalletAddress) : 0,
+
             ]);
 
-            const balance = userWalletAddress
-                ? ethers.formatUnits(rawBalance, decimals)
-                : "0";
-            console.log("rawBalance : ", rawBalance)
+            const formattedDecimals = Number(decimals);
 
             setImportedToken({
                 address: tokenAddress,
                 symbol,
-                decimals: decimals.toString(),
+                decimals: formattedDecimals,
                 name,
-                balance,
+                balance: "0",
             });
         } catch (err) {
             console.error("Detailed error:", err);
@@ -69,6 +66,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
             setLoading(false);
         }
     };
+
 
     const handleClose = () => {
         setTokenAddress("");
@@ -79,44 +77,45 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
     };
 
     const handleSaveToken = () => {
-        setLoading(true);
-        setError("");
-        const chains = loadFromLocalStorage(CHAIN_LIST);
-        const cId = Number(loadFromLocalStorage(CHAIN_ID));
-        const newToken = { ...importedToken };
+        try {
+            setLoading(true);
+            setError("");
 
-        let tokenAlreadyExists = false;
-
-        const updatedChains = chains.map(chain => {
-            if (chain.chainId === cId) {
-                const exists = chain.tokens.some(
-                    t => t.address.toLowerCase() === newToken.address.toLowerCase()
-                );
-
-                if (exists) {
-                    tokenAlreadyExists = true;
-                    return chain; // no change
+            const chains = loadFromLocalStorage(CHAIN_LIST);
+            const cId = Number(loadFromLocalStorage(CHAIN_ID));
+            const newToken = { ...importedToken };
+            let tokenAlreadyExists = false;
+            const updatedChains = chains.map(chain => {
+                if (chain.chainId === cId) {
+                    const exists = chain.tokens.some(t =>
+                        t.address.toLowerCase() === newToken.address.toLowerCase()
+                    );
+                    if (exists) {
+                        tokenAlreadyExists = true;
+                        return chain; // no change
+                    }
+                    const updated = {
+                        ...chain,
+                        tokens: [...chain.tokens, newToken],
+                    };
+                    return updated;
                 }
+                return chain;
+            });
 
-                return {
-                    ...chain,
-                    tokens: [...chain.tokens, newToken],
-                };
+            if (tokenAlreadyExists) {
+                setError("Token already exists!");
+                setLoading(false);
+                return;
             }
-            return chain;
-        });
-
-        if (tokenAlreadyExists) {
-            setError("Token already exists!");
+            saveToLocalStorage(CHAIN_LIST, updatedChains);
+            setAllChains(updatedChains);
+            setReferesh(!referesh);
+            handleClose();
+        } catch (err) {
+            setError("Failed to save token");
             setLoading(false);
-            return;
         }
-
-        console.log("updated chains is:", updatedChains);
-        saveToLocalStorage(CHAIN_LIST, updatedChains)
-        setAllChains(updatedChains);
-        setReferesh(!referesh);
-        handleClose()
     };
 
 
