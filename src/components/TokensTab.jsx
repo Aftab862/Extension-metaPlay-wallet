@@ -13,7 +13,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import ImportTokenDialog from "./TokenImportModal";
 
-const TokensTab = ({ selectedChain, userWalletAddress }) => {
+const TokensTab = ({ selectedChain, userWalletAddress, setAllChains }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
 
@@ -67,7 +67,7 @@ const TokensTab = ({ selectedChain, userWalletAddress }) => {
                                 borderBottom="1px solid #eee"
                             >
                                 <Box>
-                                    <Typography fontWeight="bold">{t.symbol}</Typography>
+                                    <Typography fontWeight="bold">{t.name}</Typography>
                                     {t?.address && (
                                         <Typography fontSize="0.8rem" color="gray">
                                             {t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
@@ -101,6 +101,7 @@ const TokensTab = ({ selectedChain, userWalletAddress }) => {
                 onClose={() => setImportOpen(false)}
                 rpcUrl={selectedChain?.rpcUrl}
                 userWalletAddress={userWalletAddress}
+                setAllChains={setAllChains}
             />
         </div>
     );

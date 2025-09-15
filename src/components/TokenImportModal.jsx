@@ -13,7 +13,7 @@ import {
 import { ethers } from "ethers";
 import { CHAIN_ID, CHAIN_LIST, WALLET_DATA_KEY } from "../utils/keys";
 import { loadWalletState } from "../utils/walletUtils";
-import { loadFromLocalStorage } from "../utils/storage";
+import { loadFromLocalStorage, saveToLocalStorage } from "../utils/storage";
 
 const ERC20_ABI = [
     "function symbol() view returns (string)",
@@ -22,7 +22,7 @@ const ERC20_ABI = [
     "function balanceOf(address) view returns (uint256)",
 ];
 
-const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
+const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllChains }) => {
     const [tokenAddress, setTokenAddress] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -56,7 +56,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
             setImportedToken({
                 address: tokenAddress,
                 symbol,
-                decimals,
+                decimals: decimals.toString(),
                 name,
                 balance,
             });
@@ -77,23 +77,46 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress }) => {
     };
 
     const handleSaveToken = () => {
+        setLoading(true);
+        setError("");
         const chains = loadFromLocalStorage(CHAIN_LIST);
-        const cId = loadFromLocalStorage(CHAIN_ID);
+        const cId = Number(loadFromLocalStorage(CHAIN_ID));
         const newToken = { ...importedToken };
-        console.log("new token : ", newToken);
-        // const hasSelectedChain = chains.map((res) => {
 
-        //   if(  res.chainId === cId){
-        //    [...chains , res.tokens[...res.tokens , ]   ]
-        //   }
+        let tokenAlreadyExists = false;
+
+        const updatedChains = chains.map(chain => {
+            if (chain.chainId === cId) {
+                const exists = chain.tokens.some(
+                    t => t.address.toLowerCase() === newToken.address.toLowerCase()
+                );
+
+                if (exists) {
+                    tokenAlreadyExists = true;
+                    return chain; // no change
+                }
+
+                return {
+                    ...chain,
+                    tokens: [...chain.tokens, newToken],
+                };
+            }
+            return chain;
+        });
+
+        if (tokenAlreadyExists) {
+            setError("Token already exists!");
+            setLoading(false);
+            return;
+        }
+
+        console.log("updated chains is:", updatedChains);
+        saveToLocalStorage(CHAIN_LIST, updatedChains)
+        setAllChains(updatedChains);
+        handleClose()
+    };
 
 
-        // });
-
-        // symbol: "USDT", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6
-        // console.log("handle save token : ", hasSelectedChain);
-
-    }
 
 
 

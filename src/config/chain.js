@@ -8,8 +8,8 @@ export const EVM_CHAINS = [
         nativeSymbol: "ETH",
         rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${API_KEY}`,
         tokens: [
-            { symbol: "USDT", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6 },
-            { symbol: "USDC", address: "0xA0b86991C6218b36c1D19D4a2e9Eb0cE3606eB48", decimals: 6 },
+            { symbol: "USDT", name: "Tether USD", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6, balance: "0" },
+            { symbol: "USDC", name: "USD Coin", address: "0xA0b86991C6218b36c1D19D4a2e9Eb0cE3606eB48", decimals: 6, balance: "0" },
         ],
     },
     {
@@ -18,8 +18,7 @@ export const EVM_CHAINS = [
         nativeSymbol: "DXB",
         rpcUrl: `https://rpc-testnet-1.vrcchain.com`,
         tokens: [
-            { symbol: "MPT", address: "0x4EdcE81D8c1635A57d0F2Dd3DD0D0B25f173D145", decimals: 6 },
-
+            { symbol: "MPT", name: "MPT Token", address: "0x4EdcE81D8c1635A57d0F2Dd3DD0D0B25f173D145", decimals: 6, balance: "0" },
         ],
     },
     {
@@ -28,8 +27,8 @@ export const EVM_CHAINS = [
         nativeSymbol: "BNB",
         rpcUrl: "https://bsc-dataseed.binance.org/",
         tokens: [
-            { symbol: "BUSD", address: "0xe9e7cea3dedca5984780bafc599bd69add087d56", decimals: 18 },
-            { symbol: "USDT", address: "0x55d398326f99059ff775485246999027b3197955", decimals: 18 },
+            { symbol: "BUSD", name: "Binance USD", address: "0xe9e7cea3dedca5984780bafc599bd69add087d56", decimals: 18, balance: "0" },
+            { symbol: "USDT", name: "Tether USD", address: "0x55d398326f99059ff775485246999027b3197955", decimals: 18, balance: "0" },
         ],
     },
     {
@@ -38,11 +37,12 @@ export const EVM_CHAINS = [
         nativeSymbol: "MATIC",
         rpcUrl: "https://polygon-rpc.com",
         tokens: [
-            { symbol: "USDT", address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
-            { symbol: "USDC", address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6 },
+            { symbol: "USDT", name: "Tether USD", address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6, balance: "0" },
+            { symbol: "USDC", name: "USD Coin", address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6, balance: "0" },
         ],
     },
 ];
+
 
 // const API_KEY = "G1bAPRusuEnETMRFgNDU6Eg-ntLJwT43";
 

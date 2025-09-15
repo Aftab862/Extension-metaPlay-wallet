@@ -24,13 +24,13 @@ function a11yProps(index) {
 }
 
 
-export default function DashboardTabs({ selectedChain }) {
+export default function DashboardTabs({ selectedChain, setAllChains }) {
     const [activeTab, setActiveTab] = useState(0);
 
     const handleTabChange = (_, newValue) => setActiveTab(newValue);
 
     const tabs = [
-        { label: "Tokens", content: <TokensTab selectedChain={selectedChain} /> },
+        { label: "Tokens", content: <TokensTab selectedChain={selectedChain} setAllChains={setAllChains} /> },
         { label: "Activity", content: <Activity selectedChain={selectedChain} /> },
     ];
 

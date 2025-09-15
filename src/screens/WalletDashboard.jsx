@@ -49,7 +49,8 @@ const WalletDashboard = ({
     referesh,
     setReferesh,
     setSelectedChain,
-    selectedChain
+    selectedChain,
+    setAllChains
 }) => {
     const [chainModalOpen, setChainModalOpen] = useState(false);
     const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -279,6 +280,7 @@ const WalletDashboard = ({
                     <DashboardTabs
                         setSelectedChain={setSelectedChain}
                         selectedChain={selectedChain}
+                        setAllChains={setAllChains}
                     />
                 </>
             )}
@@ -293,6 +295,7 @@ const WalletDashboard = ({
                     onSelect={handleChainSwitch}
                     setReferesh={setReferesh}
                     referesh={referesh}
+
                 />
             )}
             {accountModalOpen && selectedWallet && (

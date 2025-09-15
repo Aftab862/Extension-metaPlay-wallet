@@ -51,14 +51,12 @@ const App = () => {
         const cId = loadFromLocalStorage(CHAIN_ID)
         const result = GetChains();
         const hasSelectedChain = result.find((res) => res.chainId === cId);
-
-
         setAllChains(result);
         console.log("result", hasSelectedChain, result)
         setSelectedChain(hasSelectedChain ? hasSelectedChain : result[0]);
         setLoading(false);
 
-    }, [referesh])
+    }, [referesh, allChains])
 
 
 
@@ -98,6 +96,7 @@ const App = () => {
 
         init();
     }, []);
+
 
     /* Password submit */
     const handlePasswordSubmit = async (inputPassword) => {
@@ -243,6 +242,7 @@ const App = () => {
                         // Optional: keep this for backward-compat if your Dashboard still expects it
                         selectedIndex={memoSelA}
                         allChains={allChains}
+                        setAllChains={setAllChains}
                         referesh={referesh}
                         setReferesh={setReferesh}
                         selectedChain={selectedChain}
