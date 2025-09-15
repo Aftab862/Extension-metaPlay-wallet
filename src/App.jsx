@@ -56,7 +56,9 @@ const App = () => {
         setSelectedChain(hasSelectedChain ? hasSelectedChain : result[0]);
         setLoading(false);
 
-    }, [referesh, allChains])
+    }, [referesh])
+
+
 
 
 

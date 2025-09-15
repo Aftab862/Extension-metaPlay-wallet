@@ -281,6 +281,8 @@ const WalletDashboard = ({
                         setSelectedChain={setSelectedChain}
                         selectedChain={selectedChain}
                         setAllChains={setAllChains}
+                        referesh={referesh}
+                        setReferesh={setReferesh}
                     />
                 </>
             )}

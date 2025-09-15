@@ -22,7 +22,7 @@ const ERC20_ABI = [
     "function balanceOf(address) view returns (uint256)",
 ];
 
-const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllChains }) => {
+const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllChains, referesh, setReferesh }) => {
     const [tokenAddress, setTokenAddress] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -113,6 +113,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
         console.log("updated chains is:", updatedChains);
         saveToLocalStorage(CHAIN_LIST, updatedChains)
         setAllChains(updatedChains);
+        setReferesh(!referesh);
         handleClose()
     };
 
@@ -121,7 +122,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
 
 
     return (
-        <Dialog open={open} onClose={handleClose} fullWidth>
+        <Dialog open={open} disableScrollLock onClose={handleClose} fullWidth>
             <DialogTitle>Import Token</DialogTitle>
             <DialogContent>
                 <TextField
@@ -129,7 +130,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
                     fullWidth
                     margin="normal"
                     value={tokenAddress}
-                    onChange={(e) => setTokenAddress(e.target.value)}
+                    onChange={(e) => { setTokenAddress(e.target.value); setImportedToken(null) }}
                     placeholder="0x..."
                 />
                 {loading && <CircularProgress size={24} />}
