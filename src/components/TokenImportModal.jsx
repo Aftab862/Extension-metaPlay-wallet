@@ -27,6 +27,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [importedToken, setImportedToken] = useState(null);
+    console.log("userWalletAddress : ", userWalletAddress);
 
     const fetchTokenData = async () => {
         try {
@@ -52,6 +53,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
             const balance = userWalletAddress
                 ? ethers.formatUnits(rawBalance, decimals)
                 : "0";
+            console.log("rawBalance : ", rawBalance)
 
             setImportedToken({
                 address: tokenAddress,

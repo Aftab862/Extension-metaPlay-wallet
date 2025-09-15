@@ -24,7 +24,9 @@ function a11yProps(index) {
 }
 
 
-export default function DashboardTabs({ selectedChain, setAllChains, referesh, setReferesh }) {
+export default function DashboardTabs({ selectedChain, setAllChains, referesh, setReferesh, userWalletAddress }) {
+
+
     const [activeTab, setActiveTab] = useState(0);
 
     const handleTabChange = (_, newValue) => setActiveTab(newValue);
@@ -34,6 +36,7 @@ export default function DashboardTabs({ selectedChain, setAllChains, referesh, s
             label: "Tokens", content: <TokensTab selectedChain={selectedChain} setAllChains={setAllChains}
                 referesh={referesh}
                 setReferesh={setReferesh}
+                userWalletAddress={userWalletAddress}
             />
         },
         { label: "Activity", content: <Activity selectedChain={selectedChain} /> },

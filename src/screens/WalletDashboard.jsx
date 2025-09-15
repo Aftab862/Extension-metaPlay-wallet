@@ -56,24 +56,17 @@ const WalletDashboard = ({
     const [accountModalOpen, setAccountModalOpen] = useState(false);
     const [importModalOpen, setImportModalOpen] = React.useState(false);
     const [step, setStep] = React.useState(false);
-
-
-
-
-    const [chainBalances, setChainBalances] = useState({
-        native: "0",
-        tokens: [],
-        loading: false
-    });
+    const [userWalletAddress, setUserWalletAddress] = useState(null);
 
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
     const selectedAccount = selectedWallet?.accounts?.[selectedAccountIndex] || null;
-    console.log("Selected Account : ", selectedAccount)
-    const evmAddress = useMemo(
-        () => selectedAccount?.chains?.find(c => c.type === "evm")?.address || null,
-        [selectedAccount]
-    );
+
+    useEffect(() => {
+        const address = selectedAccount?.chains?.find(c => c.type === "evm")?.address
+        setUserWalletAddress(address);
+    }, [selectedAccount]);
+
 
     if (loading) return <Loader message="Adding account..." />;
     if (!selectedWallet || !selectedAccount) {
@@ -283,6 +276,7 @@ const WalletDashboard = ({
                         setAllChains={setAllChains}
                         referesh={referesh}
                         setReferesh={setReferesh}
+                        userWalletAddress={userWalletAddress}
                     />
                 </>
             )}

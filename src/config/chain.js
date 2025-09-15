@@ -17,9 +17,7 @@ export const EVM_CHAINS = [
         chainId: 1999,
         nativeSymbol: "DXB",
         rpcUrl: `https://rpc-testnet-1.vrcchain.com`,
-        tokens: [
-            { symbol: "MPT", name: "MPT Token", address: "0x4EdcE81D8c1635A57d0F2Dd3DD0D0B25f173D145", decimals: 6, balance: "0" },
-        ],
+        tokens: [],
     },
     {
         name: "Binance Smart Chain",
