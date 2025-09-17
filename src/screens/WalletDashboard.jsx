@@ -114,7 +114,7 @@ const WalletDashboard = ({
             const updatedWallets = [
                 ...currentWallets,
                 {
-                    walletType: "import_seed",
+                    walletType: "imported_seed",
                     mnemonic: encryptedMenmonic,
                     accounts: [normalized],
                 }
@@ -175,7 +175,7 @@ const WalletDashboard = ({
             const newWalletIndex = currentWallets.length;
             const updatedWallets = [
                 ...currentWallets,
-                { mnemonic: null, walletType: "import_pk", accounts: [normalized] }
+                { mnemonic: null, walletType: "imported_pk", accounts: [normalized] }
             ];
 
             setWallets(updatedWallets);

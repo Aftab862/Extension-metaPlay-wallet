@@ -44,7 +44,7 @@ export default function AccountSelectorModal({
     };
 
     const currentWallet = wallet[selectedWalletIndex];
-    const isAllow = currentWallet.walletType === "seed" || currentWallet.walletType === "import_seed";
+    const isAllow = currentWallet.walletType === "seed" || currentWallet.walletType === "imported_seed";
 
 
     const handleMenuOpen = (event, account) => {
