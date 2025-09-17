@@ -87,7 +87,7 @@ export default function ChainSelectorModal({
 
             }}>
                 <Typography variant="h6" >
-                    Select network
+                    {showForm ? "Add custom chain" : "Select network"}
                 </Typography>
 
 
