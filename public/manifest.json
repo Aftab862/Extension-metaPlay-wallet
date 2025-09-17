@@ -22,7 +22,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/Logo.png",
+        "icons/Logo.svg",
         "icons/hand.gif"
       ],
       "matches": [
