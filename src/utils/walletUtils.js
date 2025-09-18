@@ -111,6 +111,7 @@ export async function generateWalletFromMnemonic(mnemonicPhrase, index = 0) {
 export function normalizeWalletObject(walletObj, index) {
     return {
         accountIndex: index,
+        accountName: "",
         chains: Object.entries(walletObj).map(([type, data]) => ({
             type,
             address: data.address,

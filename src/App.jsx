@@ -16,6 +16,7 @@ import Loader from "./components/Loader";
 import ImportWalletScreen from "./screens/ImportWallet";
 import { initChains, loadFromLocalStorage, saveToLocalStorage } from "./utils/storage";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
+import VerifyPhraseScreen from "./screens/VerifyPhrases";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
@@ -152,7 +153,8 @@ const App = () => {
         }
     };
 
-    const handleSavePhraseContinue = () => setStep("main");
+    const handleSavePhraseContinue = () => setStep("verify");
+    const handleVerifyContinue = () => setStep("main");
     const handleImportMnemonic = (mnemonicFromUser) => {
         setMnemonic(mnemonicFromUser);
         setStep("set-password");
@@ -234,6 +236,9 @@ const App = () => {
 
                 {step === "save-phrase" && (
                     <SavePhraseScreen mnemonic={mnemonic} onContinue={handleSavePhraseContinue} />
+                )}
+                {step === "verify" && (
+                    <VerifyPhraseScreen mnemonic={mnemonic} onContinue={handleVerifyContinue} />
                 )}
 
                 {step === "main" && (

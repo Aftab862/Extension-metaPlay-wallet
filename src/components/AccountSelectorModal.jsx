@@ -135,7 +135,7 @@ export default function AccountSelectorModal({
                                                     </Avatar>
                                                 </ListItemAvatar>
                                                 <ListItemText
-                                                    primary={`Account ${aIdx + 1}`}
+                                                    primary={account?.accountName ? account?.accountName : `Account ${aIdx + 1}`}
                                                     secondary={`${address.slice(0, 6)}...${address.slice(-4)}`}
                                                     onClick={() => {
                                                         onSelectAccount(wIdx, aIdx);
@@ -223,7 +223,7 @@ export default function AccountSelectorModal({
                         handleMenuClose();
                     }}
                 >
-                    View Details
+                    Edit Name
                 </MenuItem>
                 <MenuItem
                     onClick={() => {
