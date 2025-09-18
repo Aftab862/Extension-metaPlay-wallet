@@ -136,13 +136,13 @@ const ImportWalletScreen = ({ method = "mnemonic", onImport, height = "93vh" }) 
         >
             {/* Header */}
             <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-                <Avatar sx={{ bgcolor: "#1976d2", width: 56, height: 56 }}>
+                {/* <Avatar sx={{ bgcolor: "#1976d2", width: 56, height: 56 }}>
                     {isMnemonic ? (
                         <ImportExportIcon fontSize="large" />
                     ) : (
                         <VpnKeyIcon fontSize="large" />
                     )}
-                </Avatar>
+                </Avatar> */}
                 <Typography variant="h6" mt={1}>
                     {isMnemonic
                         ? "Secret Recovery Phrase"

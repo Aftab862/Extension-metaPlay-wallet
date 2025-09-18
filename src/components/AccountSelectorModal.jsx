@@ -47,15 +47,28 @@ export default function AccountSelectorModal({
     const isAllow = currentWallet.walletType === "seed" || currentWallet.walletType === "imported_seed";
 
 
-    const handleMenuOpen = (event, account) => {
+    const handleMenuOpen = (event, account, wId) => {
         setMenuAnchor(event.currentTarget);
-        setMenuAccount(account);
+        setMenuAccount({ ...account, wId });
     };
 
     const handleMenuClose = () => {
         setMenuAnchor(null);
         setMenuAccount(null);
     };
+
+    const handleEditAccount = (selectedAccount) => {
+
+        console.log("wallet account :", wallet)
+        console.log("Edit Account index :", selectedAccount?.accountIndex)
+        console.log("Edit Wallet index :", selectedAccount?.wId)
+        const actualWallet = wallet[selectedAccount?.wId]
+        const actualAccount = actualWallet?.accounts[selectedAccount?.accountIndex];
+        console.log("Actuall editable Wallet", actualWallet)
+        console.log("Actuall editable Account", actualAccount)
+    }
+
+
 
     return (
         <Dialog
@@ -145,7 +158,7 @@ export default function AccountSelectorModal({
 
                                                 <IconButton
                                                     size="small"
-                                                    onClick={(e) => handleMenuOpen(e, account)}
+                                                    onClick={(e) => handleMenuOpen(e, account, wIdx)}
                                                 >
                                                     <MoreVertIcon />
                                                 </IconButton>
@@ -219,11 +232,11 @@ export default function AccountSelectorModal({
                 </MenuItem>
                 <MenuItem
                     onClick={() => {
-                        console.log("View details of", menuAccount);
-                        handleMenuClose();
+
+                        handleEditAccount(menuAccount)
                     }}
                 >
-                    Edit Name
+                    Edit Account
                 </MenuItem>
                 <MenuItem
                     onClick={() => {
