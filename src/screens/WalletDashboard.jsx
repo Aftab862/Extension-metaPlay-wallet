@@ -23,7 +23,7 @@ import ImportWalletScreen from "./ImportWallet";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import DashboardTabs from "../components/DashboardTabs";
-import { CHAIN_ID, SESSION_PASSWORD_KEY } from "../utils/keys";
+import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 
@@ -190,11 +190,49 @@ const WalletDashboard = ({
             alert("Invalid private key. Please try again.");
         }
     };
+
     const handleChainSwitch = (userSelectedChain) => {
         saveToLocalStorage(CHAIN_ID, userSelectedChain?.chainId)
         setSelectedChain(userSelectedChain);
     }
 
+    const onUpdateAccountName = (wId, aId, newName) => {
+        console.log("wId,aId,newName", wId, aId, newName);
+
+        setWallets((prevWallets) => {
+            // clone current wallets
+            const updatedWallets = [...prevWallets];
+
+            // clone the specific wallet
+            const targetWallet = { ...updatedWallets[wId] };
+
+            // clone accounts array
+            const updatedAccounts = [...targetWallet.accounts];
+
+            // clone and update specific account
+            const updatedAccount = {
+                ...updatedAccounts[aId],
+                accountName: newName,
+            };
+
+            updatedAccounts[aId] = updatedAccount;
+            targetWallet.accounts = updatedAccounts;
+            updatedWallets[wId] = targetWallet;
+
+
+            // ✅ Save to localStorage with the same structure
+            const dataToPersist = {
+                wallets: updatedWallets,
+                selectedWalletIndex: wId,
+                selectedAccountIndex: aId,
+            };
+            localStorage.setItem(WALLET_DATA_KEY, JSON.stringify(dataToPersist));
+
+            console.log("updated wallets :", dataToPersist)
+
+            return updatedWallets;
+        });
+    };
 
 
 
@@ -304,6 +342,7 @@ const WalletDashboard = ({
                     onSelectAccount={onSelectAccount}
                     onAddAccount={onAddAccount}
                     setImportModalOpen={setImportModalOpen}
+                    onUpdateAccountName={onUpdateAccountName}
 
                 />
             )}
