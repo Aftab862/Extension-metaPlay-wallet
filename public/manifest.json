@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MetaPlay Wallet",
   "version": "1.0",
-  "description": "Securely manage your crypto with MetaPlay Wallet, your decentralized Web3 wallet extension.",
+  "description": "Securely manage your digital assets with MetaPlay Wallet, your decentralized Web3 digital asset wallet extension.",
   "permissions": [
     "storage",
     "activeTab"
