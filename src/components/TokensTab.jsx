@@ -91,7 +91,6 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
         fetchBalances();
     }, [userWalletAddress, setAllChains]);
 
-    console.log("selected chains in tokens tabs  : ", selectedChain.tokens);
 
     return (
         <div>
@@ -142,10 +141,13 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                                     <Typography fontWeight="bold">{t.name}</Typography>
                                     {t?.address && (
                                         <Typography fontSize="0.8rem" color="gray">
-                                            {t.isNative ? "Native" : t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
+                                            {t.isNative
+                                                ? "Native"
+                                                : `${t.address.slice(0, 6)}...${t.address.slice(-4)}`}
                                         </Typography>
                                     )}
                                 </Box>
+
                                 <Box textAlign="right">
                                     <Typography>{t.balance}</Typography>
                                     <Typography>{t.symbol}</Typography>
