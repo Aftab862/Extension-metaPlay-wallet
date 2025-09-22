@@ -276,13 +276,15 @@ const WalletDashboard = ({
                 <ImportWalletScreen
                     method="mnemonic"
                     onImport={handleImportMnemonic}
-                    height="87vh"
+                    height="85vh"
+                    setStep={setStep}
                 />
             ) : step === "importPrivateKey" ? (
                 <ImportWalletScreen
                     method="privateKey"
                     onImport={handleImportPrivateKey}
                     height="63vh"
+                    setStep={setStep}
                 />
             ) : (
                 <>
