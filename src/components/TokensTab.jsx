@@ -122,7 +122,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                     </Box>
                 </Box>
 
-                <Box px={2}>
+                <Box px={2} sx={{ height: "32vh", overflowY: "auto" }}>
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={3}>
                             <CircularProgress size={24} />
