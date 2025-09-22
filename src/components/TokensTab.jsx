@@ -34,40 +34,39 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
 
     useEffect(() => {
         const fetchBalances = async () => {
-            console.log("▶ Fetching balances...");
-            console.log("User Wallet Address:", userWalletAddress);
-            console.log("Selected Chain:", selectedChain);
+            if (!userWalletAddress || !selectedChain?.tokens?.length) return;
+
+            setLoading(true);
+            const provider = new ethers.JsonRpcProvider(selectedChain.rpcUrl);
 
             try {
-                if (!userWalletAddress || !selectedChain?.tokens?.length) {
-                    return;
-                }
-
-                setLoading(true);
-
-                const provider = new ethers.JsonRpcProvider(selectedChain.rpcUrl);
-                console.log("Provider initialized with RPC:", selectedChain.rpcUrl);
-
                 const updatedTokens = await Promise.all(
                     selectedChain.tokens.map(async (t) => {
-                        console.log(`🔎 Fetching balance for token: ${t.symbol} at ${t.address}`);
                         try {
-                            const contract = new ethers.Contract(
-                                t.address,
-                                ["function balanceOf(address owner) view returns (uint256)"],
-                                provider
-                            );
+                            if (t.isNative) {
+                                // native coin balance
+                                const rawBalance = await provider.getBalance(userWalletAddress);
+                                const formatted = ethers.formatUnits(rawBalance, t.decimals);
 
-                            const rawBalance = await contract.balanceOf(userWalletAddress);
-                            console.log(`${t.symbol} raw balance:`, rawBalance.toString());
+                                return {
+                                    ...t,
+                                    balance: parseFloat(formatted).toFixed(4),
+                                };
+                            } else {
+                                // ERC-20 balance
+                                const contract = new ethers.Contract(
+                                    t.address,
+                                    ["function balanceOf(address owner) view returns (uint256)"],
+                                    provider
+                                );
+                                const rawBalance = await contract.balanceOf(userWalletAddress);
+                                const formatted = ethers.formatUnits(rawBalance, t.decimals);
 
-                            const formatted = ethers.formatUnits(rawBalance, t.decimals);
-                            console.log(`${t.symbol} formatted balance:`, formatted);
-
-                            return {
-                                ...t,
-                                balance: parseFloat(formatted).toFixed(4), // UI only
-                            };
+                                return {
+                                    ...t,
+                                    balance: parseFloat(formatted).toFixed(4),
+                                };
+                            }
                         } catch (err) {
                             console.error(`❌ Failed fetching balance for ${t.symbol}:`, err);
                             return { ...t, balance: "0" };
@@ -75,24 +74,13 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                     })
                 );
 
-                console.log("✅ Updated tokens with balances:", updatedTokens);
-                setAllChains((prev) => {
-                    const newChains = prev.map((chain) =>
+                setAllChains((prev) =>
+                    prev.map((chain) =>
                         chain.chainId === selectedChain.chainId
                             ? { ...chain, tokens: updatedTokens }
                             : chain
-                    );
-
-                    console.log("Final chains after update:", newChains);
-
-                    // Save outside but still inside this block
-                    saveToLocalStorage(CHAIN_LIST, newChains);
-
-                    return newChains;
-                });
-
-
-
+                    )
+                );
             } catch (err) {
                 console.error("❌ Error in fetchBalances:", err);
             } finally {
@@ -154,7 +142,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                                     <Typography fontWeight="bold">{t.name}</Typography>
                                     {t?.address && (
                                         <Typography fontSize="0.8rem" color="gray">
-                                            {t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
+                                            {t.isNative ? "Native" : t?.address?.slice(0, 6)}...{t?.address?.slice(-4)}
                                         </Typography>
                                     )}
                                 </Box>

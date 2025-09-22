@@ -81,7 +81,7 @@ const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
                 </Box>
 
                 <Typography variant="h6" mt={1}>
-                    {mode === "create" ? "Create Password" : "Unlock Your Wallet"}
+                    {mode === "create" ? "Create Password" : "Welcome back"}
                 </Typography>
             </Box>
 
