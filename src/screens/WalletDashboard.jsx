@@ -20,12 +20,14 @@ import { mapColors } from "../utils/helper";
 import Loader from "../components/Loader";
 import ImportWalletModal from "../components/ImportWalletModal";
 import ImportWalletScreen from "./ImportWallet";
+
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import DashboardTabs from "../components/DashboardTabs";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
+import MenuListModal from "../components/MenuList/Index";
 
 
 const actionItems = [
@@ -54,6 +56,7 @@ const WalletDashboard = ({
 }) => {
     const [chainModalOpen, setChainModalOpen] = useState(false);
     const [accountModalOpen, setAccountModalOpen] = useState(false);
+    const [menulist, setMenuList] = useState(false);
     const [importModalOpen, setImportModalOpen] = React.useState(false);
     const [step, setStep] = React.useState(false);
     const [userWalletAddress, setUserWalletAddress] = useState(null);
@@ -264,7 +267,7 @@ const WalletDashboard = ({
                     <IconButton sx={{ color: "white" }} onClick={() => setChainModalOpen(true)}>
                         <LanguageIcon />
                     </IconButton>
-                    <IconButton sx={{ color: "white" }}>
+                    <IconButton sx={{ color: "white" }} onClick={() => setMenuList(true)} >
                         <MenuIcon />
                     </IconButton>
                 </Box>
@@ -355,6 +358,15 @@ const WalletDashboard = ({
                     open={importModalOpen}
                     onClose={() => setImportModalOpen(false)}
                     onImportTypeSelect={handleImportTypeSelect}
+                />
+            }
+
+            {menulist &&
+
+                <MenuListModal
+                    open={menulist}
+                    onClose={() => setMenuList(false)}
+                // onImportTypeSelect={handleImportTypeSelect}
                 />
             }
 

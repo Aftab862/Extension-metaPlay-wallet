@@ -91,6 +91,13 @@ export default function AccountSelectorModal({
             fullWidth
             scroll="paper"
             disableScrollLock
+            PaperProps={{
+                sx: {
+                    bgcolor: "#fff",
+                    color: "black",
+                    borderRadius: 2,
+                },
+            }}
         >
             {editOpen ? (
                 <>

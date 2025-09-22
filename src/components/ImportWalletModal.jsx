@@ -8,7 +8,16 @@ const ImportWalletModal = ({ open, onClose, onImportTypeSelect }) => {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
+            PaperProps={{
+                sx: {
+                    bgcolor: "#fff",
+                    color: "black",
+                    borderRadius: 2,
+                },
+            }}
+
+        >
             <DialogTitle>Import Wallet</DialogTitle>
             <DialogContent>
                 <Button

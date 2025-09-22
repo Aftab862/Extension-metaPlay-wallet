@@ -78,6 +78,13 @@ export default function ChainSelectorModal({
             fullWidth
             scroll="paper"
             disableScrollLock
+            PaperProps={{
+                sx: {
+                    bgcolor: "#fff",
+                    color: "black",
+                    borderRadius: 2,
+                },
+            }}
         >
             <DialogTitle sx={{
                 pb: 0,
