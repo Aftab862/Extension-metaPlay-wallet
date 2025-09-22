@@ -85,15 +85,20 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
             const cId = Number(loadFromLocalStorage(CHAIN_ID));
             const newToken = { ...importedToken };
             let tokenAlreadyExists = false;
-            const updatedChains = chains.map(chain => {
+            const updatedChains = chains.map((chain, index) => {
                 if (chain.chainId === cId) {
-                    const exists = chain.tokens.some(t =>
-                        t.address.toLowerCase() === newToken.address.toLowerCase()
-                    );
+                    const exists = chain.tokens.some((t, ti) => {
+                        return (
+                            t.address?.toLowerCase() === newToken.address?.toLowerCase()
+                        );
+                    });
+
                     if (exists) {
+                        console.log("Token already exists in chain:", cId);
                         tokenAlreadyExists = true;
                         return chain; // no change
                     }
+
                     const updated = {
                         ...chain,
                         tokens: [...chain.tokens, newToken],
@@ -108,9 +113,12 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
                 setLoading(false);
                 return;
             }
+
             saveToLocalStorage(CHAIN_LIST, updatedChains);
+
             setAllChains(updatedChains);
             setReferesh(!referesh);
+
             handleClose();
         } catch (err) {
             setError("Failed to save token");
