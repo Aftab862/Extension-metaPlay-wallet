@@ -1,6 +1,6 @@
 import { SESSION_KEY } from "./keys";
 
-const TIME_LIMIT_MINUTES = 10;
+const TIME_LIMIT_MINUTES = 50;
 
 export const saveLoginTime = () => {
     localStorage.setItem(SESSION_KEY, Date.now().toString());

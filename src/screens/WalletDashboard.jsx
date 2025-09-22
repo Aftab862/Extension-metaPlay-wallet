@@ -28,6 +28,7 @@ import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 import MenuListModal from "../components/MenuList/Index";
+import AccountDetailsModal from "../components/AccountDetails";
 
 
 const actionItems = [
@@ -60,6 +61,10 @@ const WalletDashboard = ({
     const [importModalOpen, setImportModalOpen] = React.useState(false);
     const [step, setStep] = React.useState(false);
     const [userWalletAddress, setUserWalletAddress] = useState(null);
+    const [accountDetailModal, setAccountdetailModal] = useState(false);
+    const [currentAccount, setCurrentAccount] = useState(null);
+
+
 
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
@@ -237,6 +242,11 @@ const WalletDashboard = ({
         });
     };
 
+    const handleAccountDetails = (currentAccount) => {
+        setAccountdetailModal(true);
+        setCurrentAccount(currentAccount);
+
+    }
 
 
     return (
@@ -348,6 +358,7 @@ const WalletDashboard = ({
                     onAddAccount={onAddAccount}
                     setImportModalOpen={setImportModalOpen}
                     onUpdateAccountName={onUpdateAccountName}
+                    handleAccountDetails={handleAccountDetails}
 
                 />
             )}
@@ -366,6 +377,18 @@ const WalletDashboard = ({
                 <MenuListModal
                     open={menulist}
                     onClose={() => setMenuList(false)}
+                // onImportTypeSelect={handleImportTypeSelect}
+                />
+            }
+
+            {accountDetailModal && currentAccount &&
+
+                <AccountDetailsModal
+                    open={accountDetailModal}
+                    onClose={() => setAccountdetailModal(false)}
+                    currentAccount={currentAccount}
+                    wallet={wallets}
+
                 // onImportTypeSelect={handleImportTypeSelect}
                 />
             }

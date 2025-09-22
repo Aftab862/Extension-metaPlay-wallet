@@ -25,3 +25,19 @@ export function capitalizeFirstLetter(str) {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+
+export function findAccountDetails(wallets, targetAccount) {
+    for (const wallet of wallets) {
+        for (const account of wallet.accounts) {
+            for (const chain of account.chains) {
+                if (
+                    chain?.address?.toLowerCase() === targetAccount?.chains[0]?.address?.toLowerCase()
+                ) {
+                    return { wallet, account, chain };
+                }
+            }
+        }
+    }
+    return null;
+}

@@ -35,6 +35,7 @@ export default function AccountSelectorModal({
     onAddAccount,
     setImportModalOpen,
     onUpdateAccountName,
+    handleAccountDetails
 }) {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [menuAccount, setMenuAccount] = useState(null);
@@ -42,6 +43,7 @@ export default function AccountSelectorModal({
     const [editOpen, setEditOpen] = useState(false);
     const [editValue, setEditValue] = useState("");
     const [editTarget, setEditTarget] = useState(null);
+
 
     const currentWallet = wallet[selectedWalletIndex];
     const isAllow =
@@ -300,14 +302,14 @@ export default function AccountSelectorModal({
                         >
                             Edit Account
                         </MenuItem>
-                        {/* <MenuItem
+                        <MenuItem
                             onClick={() => {
-                                console.log("Remove account", menuAccount);
-                                handleMenuClose();
+                                handleAccountDetails(menuAccount);
+                                handleMenuClose()
                             }}
                         >
-                            Remove Account
-                        </MenuItem> */}
+                            Account details
+                        </MenuItem>
                     </Menu>
                 </>
             )}
