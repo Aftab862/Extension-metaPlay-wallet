@@ -29,6 +29,7 @@ import { encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 import MenuListModal from "../components/MenuList/Index";
 import AccountDetailsModal from "../components/AccountDetails";
+import RevealSecretModal from "../components/AccountDetails/RevealSecreteModal";
 
 
 const actionItems = [
@@ -63,12 +64,12 @@ const WalletDashboard = ({
     const [userWalletAddress, setUserWalletAddress] = useState(null);
     const [accountDetailModal, setAccountdetailModal] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(null);
-
-
+    const [revelSecreteModal, setRevelSecreteModal] = useState(false);
 
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
     const selectedAccount = selectedWallet?.accounts?.[selectedAccountIndex] || null;
+    const [revealSecretType, setRevealSccretType] = useState(null);
 
     useEffect(() => {
         const address = selectedAccount?.chains?.find(c => c.type === "evm")?.address
@@ -244,7 +245,14 @@ const WalletDashboard = ({
 
     const handleAccountDetails = (currentAccount) => {
         setAccountdetailModal(true);
+        setAccountModalOpen(false)
         setCurrentAccount(currentAccount);
+    }
+
+    const handleSecretePhrases = (data) => {
+        setRevealSccretType(data);
+        setRevelSecreteModal(true);
+        setAccountdetailModal(false);
 
     }
 
@@ -373,11 +381,9 @@ const WalletDashboard = ({
             }
 
             {menulist &&
-
                 <MenuListModal
                     open={menulist}
                     onClose={() => setMenuList(false)}
-                // onImportTypeSelect={handleImportTypeSelect}
                 />
             }
 
@@ -388,8 +394,21 @@ const WalletDashboard = ({
                     onClose={() => setAccountdetailModal(false)}
                     currentAccount={currentAccount}
                     wallet={wallets}
+                    handleSecretePhrases={handleSecretePhrases}
 
-                // onImportTypeSelect={handleImportTypeSelect}
+                />
+            }
+
+            {revelSecreteModal &&
+
+                <RevealSecretModal
+                    open={revelSecreteModal}
+                    onClose={() => setRevelSecreteModal(false)}
+                    currentAccount={currentAccount}
+                    wallet={wallets}
+                    secretType={revealSecretType}
+
+
                 />
             }
 

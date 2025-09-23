@@ -18,7 +18,7 @@ import { Close, Edit, ArrowForwardIos } from "@mui/icons-material";
 import { findAccountDetails } from "../../utils/helper";
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 
-export default function AccountDetailsModal({ wallet, open, onClose, currentAccount }) {
+export default function AccountDetailsModal({ wallet, open, onClose, currentAccount, handleSecretePhrases }) {
     // console.log("currentAccount Details : ", currentAccount, wallet);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -33,7 +33,7 @@ export default function AccountDetailsModal({ wallet, open, onClose, currentAcco
         if (wallet && currentAccount) {
             const match = findAccountDetails(wallet, currentAccount);
             if (match) {
-                console.log("data matched : ", match)
+
                 setData(match);
 
             } else {
@@ -63,12 +63,12 @@ export default function AccountDetailsModal({ wallet, open, onClose, currentAcco
                     pb: 1,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-end",
                 }}
             >
-                <Typography variant="subtitle1" fontWeight="bold">
+                {/* <Typography variant="subtitle1" fontWeight="bold">
                     {data?.account?.accountName ? data?.account?.accountName : `Account ${(data?.account?.accountIndex) + 1}`}
-                </Typography>
+                </Typography> */}
                 <IconButton onClick={onClose} size="small">
                     <Close sx={{ color: "#333" }} />
                 </IconButton>
@@ -137,7 +137,7 @@ export default function AccountDetailsModal({ wallet, open, onClose, currentAcco
 
                 {/* Secret Recovery Phrase */}
                 <List disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
+                    <ListItemButton onClick={() => handleSecretePhrases("phrase")} sx={{ px: 2 }}>
                         <ListItemText
                             primary="Secret Recovery Phrase"
                             primaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
@@ -148,7 +148,7 @@ export default function AccountDetailsModal({ wallet, open, onClose, currentAcco
                     <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
 
                     {/* Private Key */}
-                    <ListItemButton sx={{ px: 2 }}>
+                    <ListItemButton onClick={() => handleSecretePhrases("privateKey")} sx={{ px: 2 }}>
                         <ListItemText
                             primary="Private key"
                             primaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
