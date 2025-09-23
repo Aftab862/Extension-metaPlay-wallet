@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -7,6 +7,9 @@ import {
     ListItemIcon,
     ListItemText,
     Divider,
+    DialogTitle,
+    Typography,
+    IconButton,
 } from "@mui/material";
 
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -18,8 +21,25 @@ import ExtensionIcon from "@mui/icons-material/Extension";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LockIcon from "@mui/icons-material/Lock";
+import { Close } from "@mui/icons-material";
 
-const MenuListModal = ({ open, onClose }) => {
+const MenuListModal = ({ open, onClose, onMenuClick, setCurrentAccount, wallet, selectedAccountIndex, selectedWalletIndex }) => {
+    useEffect(() => {
+
+
+        let currentWallet = wallet[selectedWalletIndex];
+        let currentAccount = currentWallet?.accounts[selectedAccountIndex];
+        let modifieddata = { ...currentAccount, wId: selectedWalletIndex }
+        setCurrentAccount(modifieddata)
+
+
+    }, [])
+
+    const handleClick = (action) => {
+        if (onMenuClick) onMenuClick(action);
+        onClose(); // optional: close modal after click
+    };
+
     return (
         <Dialog
             open={open}
@@ -34,16 +54,30 @@ const MenuListModal = ({ open, onClose }) => {
                 },
             }}
         >
+            <DialogTitle
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "16px 16px 0 16px",
+                }}
+            >
+                <Typography variant="h6">Menu</Typography>
+                <IconButton onClick={onClose} size="small">
+                    <Close sx={{ fontSize: 20 }} />
+                </IconButton>
+            </DialogTitle>
+
             <DialogContent sx={{ p: 0 }}>
                 <List>
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("account-details")}>
                         <ListItemIcon>
                             <AccountCircleIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
                         <ListItemText primary="Account details" />
                     </ListItemButton>
 
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("explorer")}>
                         <ListItemIcon>
                             <OpenInNewIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
@@ -52,49 +86,41 @@ const MenuListModal = ({ open, onClose }) => {
 
                     <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
 
-                    <ListItemButton>
-                        <ListItemIcon>
-                            <SecurityIcon sx={{ color: "#1976d2" }} />
-                        </ListItemIcon>
-                        <ListItemText primary="All permissions" />
-                    </ListItemButton>
-
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("expand")}>
                         <ListItemIcon>
                             <OpenInFullIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
                         <ListItemText primary="Expand view" />
                     </ListItemButton>
 
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("networks")}>
                         <ListItemIcon>
                             <LanIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
                         <ListItemText primary="Networks" />
                     </ListItemButton>
 
-                    <ListItemButton>
-                        <ListItemIcon>
-                            <ExtensionIcon sx={{ color: "#1976d2" }} />
-                        </ListItemIcon>
-                        <ListItemText primary="Snaps" />
-                    </ListItemButton>
-
-                    <ListItemButton>
+                    {/* External link stays as is */}
+                    <ListItemButton
+                        component="a"
+                        href="https://metaplaywallet.org/support"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         <ListItemIcon>
                             <HelpOutlineIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
                         <ListItemText primary="Support" />
                     </ListItemButton>
 
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("settings")}>
                         <ListItemIcon>
                             <SettingsIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>
                         <ListItemText primary="Settings" />
                     </ListItemButton>
 
-                    <ListItemButton>
+                    <ListItemButton onClick={() => handleClick("lock")}>
                         <ListItemIcon sx={{ width: "40px" }}>
                             <LockIcon sx={{ color: "#1976d2" }} />
                         </ListItemIcon>

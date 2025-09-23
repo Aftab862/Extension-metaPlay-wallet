@@ -256,7 +256,30 @@ const WalletDashboard = ({
 
     }
 
-
+    const handleMenuClick = (action) => {
+        switch (action) {
+            case "account-details":
+                setAccountdetailModal(true)
+                break;
+            case "explorer":
+                window.open("https://etherscan.io", "_blank");
+                break;
+            case "expand":
+                console.log("Expand view triggered");
+                break;
+            case "networks":
+                console.log("Open networks modal");
+                break;
+            case "settings":
+                console.log("Navigate to settings");
+                break;
+            case "lock":
+                console.log("Lock wallet");
+                break;
+            default:
+                break;
+        }
+    };
     return (
         <Box>
             {/* Header */}
@@ -384,6 +407,11 @@ const WalletDashboard = ({
                 <MenuListModal
                     open={menulist}
                     onClose={() => setMenuList(false)}
+                    onMenuClick={handleMenuClick}
+                    setCurrentAccount={setCurrentAccount}
+                    selectedWalletIndex={selectedWalletIndex}
+                    selectedAccountIndex={selectedAccountIndex}
+                    wallet={wallets}
                 />
             }
 
@@ -407,8 +435,6 @@ const WalletDashboard = ({
                     currentAccount={currentAccount}
                     wallet={wallets}
                     secretType={revealSecretType}
-
-
                 />
             }
 
