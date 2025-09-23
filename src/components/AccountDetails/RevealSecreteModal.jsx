@@ -309,35 +309,52 @@ export default function RevealSecretModal({
 
                             <Tooltip title="Press and hold to reveal">
                                 <Button
-                                    sx={{
-                                        textTransform: "none",
-                                        minWidth: 200,
-                                        height: 56,
-                                        borderRadius: "50px",
-                                        fontWeight: 600,
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        gap: 1.5,
-                                    }}
-                                    variant="contained"
                                     onMouseDown={startHoldReveal}
                                     onMouseUp={cancelHoldReveal}
                                     onMouseLeave={cancelHoldReveal}
                                     onTouchStart={startHoldReveal}
                                     onTouchEnd={cancelHoldReveal}
-                                    onKeyDown={onKeyDownReveal}
-                                    onKeyUp={onKeyUpReveal}
+                                    sx={{
+                                        textTransform: "none",
+                                        position: "relative",
+                                        overflow: "hidden",
+                                        borderRadius: "50px",
+                                        minWidth: 220,
+                                        height: 56,
+                                        fontWeight: 500,
+                                        color: "white",
+                                        backgroundColor: "#555",
+                                        zIndex: 1,
+                                        "&::before": {
+                                            content: '""',
+                                            position: "absolute",
+                                            top: 0,
+                                            left: 0,
+                                            width: `${holdProgress}%`, // fill based on progress
+                                            height: "100%",
+                                            background: "linear-gradient(90deg, #42a5f5, #1976d2)",
+                                            transition: "width 0.1s linear",
+                                            zIndex: -1,
+                                        },
+                                        "&::after": {
+                                            content: '""',
+                                            position: "absolute",
+                                            inset: 0,
+                                            borderRadius: "50px",
+                                            background: "linear-gradient(90deg, #1976d2 0%, #1976d2 0%, #555 0%)",
+                                            backgroundRepeat: "no-repeat", color: "black",
+                                            transition: "background-size 0.1s linear",
+                                            opacity: holdProgress > 0 ? 1 : 0,
+
+                                            zIndex: -2,
+                                        },
+
+                                    }}
                                 >
-                                    <CircularProgress
-                                        variant="determinate"
-                                        value={holdProgress}
-                                        size={22}
-                                        thickness={5}
-                                        sx={{ color: "white" }}
-                                    />
                                     Hold to Reveal
                                 </Button>
+
+
                             </Tooltip>
 
 
