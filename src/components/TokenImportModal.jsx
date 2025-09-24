@@ -27,7 +27,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [importedToken, setImportedToken] = useState(null);
-    console.log("userWalletAddress : ", userWalletAddress);
+
 
     const fetchTokenData = async () => {
         try {

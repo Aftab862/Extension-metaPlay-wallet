@@ -53,7 +53,7 @@ const App = () => {
         const result = GetChains();
         const hasSelectedChain = result.find((res) => res.chainId === cId);
         setAllChains(result);
-        console.log("result", hasSelectedChain, result)
+        // console.log("result", hasSelectedChain, result)
         setSelectedChain(hasSelectedChain ? hasSelectedChain : result[0]);
         setLoading(false);
 

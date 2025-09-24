@@ -8,11 +8,8 @@ import { findAccountNameOrIndex } from "../../../utils/helper";
 
 const ReceiveModal = ({ open, onClose, address, wallet }) => {
     const [copied, setCopied] = React.useState(false);
-    const AccountName = useMemo(
-        () => findAccountNameOrIndex(wallet, address),
-        [wallet, address]
-    );
-
+    const AccountName = findAccountNameOrIndex(wallet, address);
+    console.log(" AccountName : AccountName :", AccountName)
 
     const handleCopy = async () => {
         try {

@@ -6,8 +6,6 @@ import ReceiveModal from "./Receive";
 
 const Transction = ({ userWalletAddress, wallet }) => {
 
-
-    console.log("userWalletAddress transction : ", wallet)
     const [open, setOpen] = React.useState(false);
 
     function handleSendTrx() {
