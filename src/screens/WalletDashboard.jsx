@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense, lazy } from "react";
 import {
     Box,
     Typography,
@@ -7,37 +7,32 @@ import {
     IconButton
 } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import MenuIcon from "@mui/icons-material/Menu";
-import ChainSelectorModal from "../components/ChainSelectorModal";
-import AccountSelectorModal from "../components/AccountSelectorModal";
-import { mapColors } from "../utils/helper";
-import Loader from "../components/Loader";
-import ImportWalletModal from "../components/ImportWalletModal";
-import ImportWalletScreen from "./ImportWallet";
 
+// Lazy loaded components
+const ChainSelectorModal = lazy(() => import("../components/ChainSelectorModal"));
+const AccountSelectorModal = lazy(() => import("../components/AccountSelectorModal"));
+const Loader = lazy(() => import("../components/Loader"));
+const ImportWalletModal = lazy(() => import("../components/ImportWalletModal"));
+const ImportWalletScreen = lazy(() => import("./ImportWallet"));
+const DashboardTabs = lazy(() => import("../components/DashboardTabs"));
+const MenuListModal = lazy(() => import("../components/MenuList/Index"));
+const AccountDetailsModal = lazy(() => import("../components/AccountDetails"));
+const RevealSecretModal = lazy(() => import("../components/AccountDetails/RevealSecreteModal"));
+const Transction = lazy(() => import("../components/Transction"));
+
+// utils (keep these as normal imports because they’re small & used immediately)
+import { mapColors } from "../utils/helper";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
-import DashboardTabs from "../components/DashboardTabs";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
-import MenuListModal from "../components/MenuList/Index";
-import AccountDetailsModal from "../components/AccountDetails";
-import RevealSecretModal from "../components/AccountDetails/RevealSecreteModal";
 
-
-const actionItems = [
-    { label: "Send", icon: <ArrowUpwardIcon /> },
-    { label: "Receive", icon: <ArrowDownwardIcon /> },
-    // { label: "Buy", icon: <ShoppingCartIcon /> },
-    // { label: "Swap", icon: <SwapHorizIcon /> },
-];
 
 const WalletDashboard = ({
     wallets = [],
@@ -280,6 +275,7 @@ const WalletDashboard = ({
                 break;
         }
     };
+
     return (
         <Box>
             {/* Header */}
@@ -333,25 +329,12 @@ const WalletDashboard = ({
             ) : (
                 <>
 
-                    <Box display="flex" flexDirection="column" alignItems="center" my={2}>
-                        <Typography variant="h5" color="text.secondary">$0.00</Typography>
-                        <Typography variant="subtitle2" color="text.secondary">Total Balance</Typography>
-                    </Box>
+                    {/* Transction */}
 
-                    {/* Actions */}
-                    <Grid p={1} container spacing={2} textAlign="center" justifyContent="space-evenly" >
-                        {actionItems.map((item, index) => (
-                            <Grid key={index} item xs={3}
-                                display="flex"
-                                flexDirection="column"
-                                alignItems="center"
-                                justifyContent="space-evenly"
-                            >
-                                <Avatar sx={{ bgcolor: "#1976d2" }}>{item.icon}</Avatar>
-                                <Typography>{item.label}</Typography>
-                            </Grid>
-                        ))}
-                    </Grid>
+                    <Transction
+                        userWalletAddress={userWalletAddress}
+                        wallet={wallets}
+                    />
 
                     {/* Assets */}
                     <DashboardTabs

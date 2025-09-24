@@ -323,32 +323,34 @@ export default function RevealSecretModal({
                                         height: 56,
                                         fontWeight: 500,
                                         color: "white",
-                                        backgroundColor: "#555",
+                                        backgroundColor: "#555", // idle background
                                         zIndex: 1,
+                                        // remove MUI default hover/active ripple bg
+                                        "&:hover": {
+                                            backgroundColor: "#555",
+                                        },
+                                        "&:active": {
+                                            backgroundColor: "#555",
+                                        },
+                                        "&:focusVisible": {
+                                            backgroundColor: "#555",
+                                        },
+                                        "& .MuiTouchRipple-root": {
+                                            display: "none",
+                                        },
+                                        // fill effect
                                         "&::before": {
                                             content: '""',
                                             position: "absolute",
                                             top: 0,
                                             left: 0,
-                                            width: `${holdProgress}%`, // fill based on progress
+                                            width: `${holdProgress}%`,
                                             height: "100%",
-                                            background: "linear-gradient(90deg, #42a5f5, #1976d2)",
+                                            backgroundColor: "#1976d2",
+                                            borderRadius: "50px",
                                             transition: "width 0.1s linear",
                                             zIndex: -1,
                                         },
-                                        "&::after": {
-                                            content: '""',
-                                            position: "absolute",
-                                            inset: 0,
-                                            borderRadius: "50px",
-                                            background: "linear-gradient(90deg, #1976d2 0%, #1976d2 0%, #555 0%)",
-                                            backgroundRepeat: "no-repeat", color: "black",
-                                            transition: "background-size 0.1s linear",
-                                            opacity: holdProgress > 0 ? 1 : 0,
-
-                                            zIndex: -2,
-                                        },
-
                                     }}
                                 >
                                     Hold to Reveal

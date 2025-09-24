@@ -41,3 +41,38 @@ export function findAccountDetails(wallets, targetAccount) {
     }
     return null;
 }
+
+/**
+ * Search wallets for an account that has `targetAddress` on any chain.
+ * Returns accountName if present (non-empty), otherwise returns accountIndex (number).
+ * Returns null if not found.
+ *
+ * @param {Array} wallets - your wallets array
+ * @param {string} targetAddress - address to look for (0x... string)
+ * @returns {string|number|null}
+ */
+export function findAccountNameOrIndex(wallets, targetAddress) {
+    if (!Array.isArray(wallets) || !targetAddress) return null;
+    const target = String(targetAddress).toLowerCase();
+
+    for (const wallet of wallets) {
+        if (!wallet || !Array.isArray(wallet.accounts)) continue;
+
+        for (const acct of wallet.accounts) {
+            if (!acct || !Array.isArray(acct.chains)) continue;
+
+            const found = acct.chains.some(chain => {
+                const addr = chain?.address;
+                return typeof addr === 'string' && addr.toLowerCase() === target;
+            });
+
+            if (found) {
+                // prefer a readable name when present, otherwise accountIndex
+                const name = (acct.accountName || "").trim();
+                return name !== "" ? name : acct.accountIndex;
+            }
+        }
+    }
+
+    return null;
+}
