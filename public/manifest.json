@@ -3,7 +3,9 @@
   "name": "MetaPlay Wallet",
   "version": "1.0",
   "description": "Securely manage your digital assets with MetaPlay Wallet, your decentralized Web3 digital asset wallet extension.",
-  "permissions": [],
+  "permissions": [
+    "notifications"
+  ],
   "background": {
     "service_worker": "background.js"
   },

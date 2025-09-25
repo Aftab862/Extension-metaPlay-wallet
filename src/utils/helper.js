@@ -42,6 +42,25 @@ export function findAccountDetails(wallets, targetAccount) {
     return null;
 }
 
+export function findAccountByAddress(wallets, targetAddress) {
+    if (!targetAddress) return null;
+
+    const lowerTarget = targetAddress.toLowerCase();
+
+    for (const wallet of wallets) {
+        for (const account of wallet.accounts) {
+            for (const chain of account.chains) {
+                if (chain?.address?.toLowerCase() === lowerTarget) {
+                    return { wallet, account, chain };
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+
 export function findAccountNameOrIndex(wallets, targetAddress) {
     if (!Array.isArray(wallets) || !targetAddress) return null;
     const target = String(targetAddress).toLowerCase();

@@ -334,6 +334,7 @@ const WalletDashboard = ({
                     <Transction
                         userWalletAddress={userWalletAddress}
                         wallet={wallets}
+                        selectedChain={selectedChain}
                     />
 
                     {/* Assets */}

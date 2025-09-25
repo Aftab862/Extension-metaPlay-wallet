@@ -6,11 +6,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import ImgIcon from "../../../../public/icons/icon1.png";
 import { findAccountNameOrIndex } from "../../../utils/helper";
 
-const ReceiveModal = ({ open, onClose, address, wallet }) => {
+const ReceiveModal = ({ open, onClose, address, AccountTitile }) => {
     const [copied, setCopied] = React.useState(false);
-    const AccountName = findAccountNameOrIndex(wallet, address);
-    console.log(" AccountName : AccountName :", AccountName)
-
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(address);
@@ -54,9 +51,9 @@ const ReceiveModal = ({ open, onClose, address, wallet }) => {
                         px: 1,
                     }}
                 >
-                    {typeof AccountName === "string" && AccountName.trim() !== ""
-                        ? AccountName
-                        : `Account ${AccountName + 1}`}
+                    {typeof AccountTitile === "string" && AccountTitile.trim() !== ""
+                        ? AccountTitile
+                        : `Account ${AccountTitile + 1}`}
 
                 </Typography>
 
