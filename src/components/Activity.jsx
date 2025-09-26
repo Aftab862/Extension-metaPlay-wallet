@@ -23,7 +23,7 @@ import { CHAIN_ID } from "../utils/keys";
 
 // ✅ Helper to group transactions by date
 const groupByDate = (history = []) => {
-    return history.reduce((groups, tx) => {
+    const grouped = history.reduce((groups, tx) => {
         const date = new Date(tx.timestamp).toLocaleDateString(undefined, {
             year: "numeric",
             month: "short",
@@ -32,10 +32,17 @@ const groupByDate = (history = []) => {
 
         if (!groups[date]) groups[date] = [];
         groups[date].push(tx);
-
         return groups;
     }, {});
-};
+
+    // ✅ Sort each group by timestamp (latest first)
+    Object.keys(grouped).forEach(date => {
+        grouped[date].sort((a, b) => b.timestamp - a.timestamp);
+    });
+
+    return grouped;
+}
+
 const getTxMeta = (tx, symbol, userWallet) => {
     if (tx.from?.toLowerCase() === userWallet?.toLowerCase()) {
         return {
@@ -78,12 +85,8 @@ const getStatusMeta = (status) => {
 
 const Activity = ({ selectedChain, userWalletAddress }) => {
     const chainId = loadFromLocalStorage(CHAIN_ID);
-    const { history, loading, error, refresh } = useTransactionHistory(true, 10000, chainId, userWalletAddress);
-    console.log("Activity function loaded  : ", history, loading, error)
+    const { history, loading, error, refresh } = useTransactionHistory(false, 10000, chainId, userWalletAddress);
     const grouped = groupByDate(history || []);
-
-    useEffect(() => { }, [history])
-
 
     return (
         <Box p={2}>
@@ -126,7 +129,15 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                     No transactions yet.
                 </Typography>
             ) : (
-                <List sx={{ height: "30vh", overflowY: "auto" }}>
+                <List sx={{
+                    maxHeight: "30vh",
+                    overflowY: "auto",
+                    "&::-webkit-scrollbar": {
+                        display: "none",
+                    },
+                    scrollbarWidth: "none", // Firefox
+                    msOverflowStyle: "none", // IE/Edge
+                }}>
                     {Object.keys(grouped).map((date) => (
                         <Box key={date} mb={2}>
                             <Typography
@@ -163,7 +174,7 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                                             }
                                             secondary={
                                                 <Box display="flex" alignItems="center" gap={0.5}>
-                                                    {status.icon}
+
                                                     <Typography
                                                         variant="body2"
                                                         sx={{ color: status.color }}

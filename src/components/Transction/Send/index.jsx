@@ -358,12 +358,7 @@ const SendModal = ({
                     </Typography>
                 )}
 
-                {successTx && (
-                    <Typography mt={1} color="primary" variant="body2" textAlign="center">
-                        ✅ Transaction sent!<br />
-                        {successTx}
-                    </Typography>
-                )}
+
 
             </DialogContent>
 

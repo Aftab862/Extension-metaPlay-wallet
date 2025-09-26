@@ -113,14 +113,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // ✅ Create a notification ID to reuse
                 const notificationId = `tx-${txResponse.hash}`;
 
-                // Show initial "pending" notification
-                chrome.notifications.create(notificationId, {
-                    type: "basic",
-                    iconUrl: "icons/icon1.png",
-                    title: "Transaction Pending",
-                    message: `Sending ${amount} DXB to ${to}\nTx: ${txResponse.hash}`,
-                    priority: 2,
-                });
+
 
                 // Save pending tx in DB
                 await saveTransaction({
@@ -139,12 +132,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     await updateTransactionStatus(txResponse.hash, finalStatus);
 
-                    // ✅ Update the same notification instead of creating a new one
-                    chrome.notifications.update(notificationId, {
+                    chrome.notifications.create(`tx-${txResponse.hash}`, {
                         type: "basic",
                         iconUrl: "icons/icon1.png",
                         title: `Transaction ${finalStatus === "confirmed" ? "Confirmed ✅" : "Failed ❌"}`,
-                        message: `Tx: ${txResponse.hash}`,
+                        message: `Sent ${amount} DXB to ${to}\nTx: ${txResponse.hash}`,
                         priority: 2,
                     });
                 });
