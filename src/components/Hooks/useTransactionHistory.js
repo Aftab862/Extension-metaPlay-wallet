@@ -1,33 +1,38 @@
-import { useEffect, useState, useCallback } from "react";
-import { getTransactionHistory } from "../../utils/helper";
+import { useEffect, useState } from "react";
 
-export function useTransactionHistory(autoRefresh = true, refreshInterval = 5000) {
+export const useTransactionHistory = (autoRefresh = false, interval = 10000, chainId, address) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null);
 
-    const fetchHistory = useCallback(async () => {
-        setLoading(true);
-        setError("");
+    const fetchHistory = async () => {
         try {
-            const txs = await getTransactionHistory();
-            setHistory(txs);
+            setLoading(true);
+            const result = await chrome.runtime.sendMessage({
+                type: "GET_TX_HISTORY",
+                payload: { chainId, address },
+            });
+            console.log("tranactions received   :", result)
+            setHistory(result?.tx || []);
         } catch (err) {
-            setError(err.message || "Failed to load history");
+            setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
     useEffect(() => {
+        if (!chainId || !address) return;
+
+        // fetch immediately on mount / deps change
         fetchHistory();
 
-        let intervalId;
         if (autoRefresh) {
-            intervalId = setInterval(fetchHistory, refreshInterval);
+            const id = setInterval(fetchHistory, interval);
+            return () => clearInterval(id);
         }
-        return () => clearInterval(intervalId);
-    }, [autoRefresh, refreshInterval, fetchHistory]);
+    }, [chainId, address, interval]);
+
 
     return { history, loading, error, refresh: fetchHistory };
-}
+};

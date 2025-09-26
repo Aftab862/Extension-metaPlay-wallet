@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 // ----------------------
 const db = new Dexie("MetaPlayWalletDB");
 db.version(1).stores({
-    transactions: "&txHash, status, from, to, amount, timestamp"
+    transactions: "&txHash, chainId, from, to, status, timestamp"
 });
 
 
@@ -97,7 +97,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "SEND_TX") {
         (async () => {
             try {
-                const { to, amount, rpcUrl, privateKey } = request.payload;
+                const { to, amount, rpcUrl, privateKey, chainId } = request.payload;
 
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const wallet = new ethers.Wallet(privateKey, provider);
@@ -129,6 +129,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     to,
                     amount,
                     status: "pending",
+                    chainId,
                     timestamp: Date.now(),
                 });
 
@@ -172,9 +173,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // ------------------------
     if (request.type === "GET_TX_HISTORY") {
         (async () => {
+            const { chainId, address } = request.payload || {};
             try {
-                const txs = await db.transactions.toArray();
-                sendResponse({ success: true, txs });
+                let all = await db.transactions.toArray();
+
+                const filtered = all.filter((t) => {
+                    if (chainId && t.chainId !== chainId) return false;
+                    if (address) {
+                        const addr = address.toLowerCase();
+                        return (
+                            (t.from && t.from.toLowerCase() === addr) ||
+                            (t.to && t.to.toLowerCase() === addr)
+                        );
+                    }
+                    return true;
+                });
+                sendResponse({ success: true, tx: filtered });
             } catch (err) {
                 console.error("❌ GET_TX_HISTORY error:", err);
                 sendResponse({ success: false, error: err.message });

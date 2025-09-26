@@ -39,7 +39,11 @@ export default function DashboardTabs({ selectedChain, setAllChains, referesh, s
                 userWalletAddress={userWalletAddress}
             />
         },
-        { label: "Activity", content: <Activity selectedChain={selectedChain} /> },
+        {
+            label: "Activity", content: <Activity selectedChain={selectedChain}
+                userWalletAddress={userWalletAddress}
+            />
+        },
     ];
 
     return (

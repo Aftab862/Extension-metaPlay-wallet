@@ -19,6 +19,8 @@ import {
 } from "@mui/material";
 import { formatUnits, isAddress, parseUnits } from "ethers"; // ethers v6
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { loadFromLocalStorage } from "../../../utils/storage";
+import { CHAIN_ID } from "../../../utils/keys";
 
 
 // helper: promise wrapper for background requests
@@ -221,7 +223,7 @@ const SendModal = ({
 
             const privateKey = CurrentAccount?.account?.chains[0]?.privateKey;
             if (!privateKey) throw new Error("Missing private key.");
-
+            const chainId = loadFromLocalStorage(CHAIN_ID)
             const res = await bgRequest({
                 type: "SEND_TX",
                 payload: {
@@ -229,6 +231,7 @@ const SendModal = ({
                     to: trimmedTo,
                     amount: trimmedAmount,
                     rpcUrl: chain.rpcUrl,
+                    chainId,
                     privateKey,
                     gasPrice: customGasPrice || undefined, // ✅ pass override
                     gasLimit: customGasLimit || undefined, // ✅ pass override

@@ -7,44 +7,83 @@ import {
     ListItem,
     ListItemAvatar,
     ListItemText,
-    Chip,
     CircularProgress,
-    Tooltip,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import DoneIcon from "@mui/icons-material/Done";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import ErrorIcon from "@mui/icons-material/Error";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { mapColors } from "../utils/helper";
 import { useTransactionHistory } from "./Hooks/useTransactionHistory";
+import { loadFromLocalStorage } from "../utils/storage";
+import { CHAIN_ID } from "../utils/keys";
 
-const Activity = ({ selectedChain }) => {
-    const { history, loading, error, refresh } = useTransactionHistory(true, 10000);
-    const [copiedHash, setCopiedHash] = useState(null);
+// ✅ Helper to group transactions by date
+const groupByDate = (history = []) => {
+    return history.reduce((groups, tx) => {
+        const date = new Date(tx.timestamp).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
 
-    const truncate = (str) =>
-        str ? `${str.slice(0, 6)}...${str.slice(-4)}` : "";
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(tx);
 
-    const handleCopy = (hash) => {
-        navigator.clipboard.writeText(hash);
-        setCopiedHash(hash);
-        setTimeout(() => setCopiedHash(null), 2000);
-    };
+        return groups;
+    }, {});
+};
+const getTxMeta = (tx, symbol, userWallet) => {
+    if (tx.from?.toLowerCase() === userWallet?.toLowerCase()) {
+        return {
+            icon: <ArrowUpwardIcon color="primary" />,
+            label: "Sent",
+            amount: `-${tx.amount} ${symbol}`,
+        };
+    } else if (tx.to?.toLowerCase() === userWallet?.toLowerCase()) {
+        return {
+            icon: <ArrowDownwardIcon color="success" />,
+            label: "Deposit",
+            amount: `+${tx.amount} ${symbol}`,
+        };
+    } else if (tx.type === "approve") {
+        return {
+            icon: <ArrowUpwardIcon color="secondary" />,
+            label: "Approve",
+            amount: `${tx.amount} ${symbol}`,
+        };
+    } else {
+        return {
+            icon: <ArrowUpwardIcon color="disabled" />,
+            label: "Contract",
+            amount: `${tx.amount} ${symbol}`,
+        };
+    }
+};
+const getStatusMeta = (status) => {
+    switch (status) {
+        case "confirmed":
+            return { text: "Confirmed", color: "success.main", icon: <DoneIcon fontSize="small" /> };
+        case "pending":
+            return { text: "Pending", color: "warning.main", icon: <HourglassEmptyIcon fontSize="small" /> };
+        case "failed":
+            return { text: "Failed", color: "error.main", icon: <ErrorIcon fontSize="small" /> };
+        default:
+            return { text: status, color: "text.secondary", icon: null };
+    }
+};
 
-    const statusChip = (status) => {
-        switch (status) {
-            case "confirmed":
-                return <Chip icon={<DoneIcon />} label="Confirmed" color="success" size="small" />;
-            case "pending":
-                return <Chip icon={<HourglassEmptyIcon />} label="Pending" color="warning" size="small" />;
-            case "failed":
-                return <Chip icon={<ErrorIcon />} label="Failed" color="error" size="small" />;
-            default:
-                return <Chip label={status} size="small" />;
-        }
-    };
+const Activity = ({ selectedChain, userWalletAddress }) => {
+    const chainId = loadFromLocalStorage(CHAIN_ID);
+    const { history, loading, error, refresh } = useTransactionHistory(true, 10000, chainId, userWalletAddress);
+    console.log("Activity function loaded  : ", history, loading, error)
+    const grouped = groupByDate(history || []);
+
+    useEffect(() => { }, [history])
+
 
     return (
         <Box p={2}>
@@ -67,7 +106,9 @@ const Activity = ({ selectedChain }) => {
                     >
                         {selectedChain?.nativeSymbol}
                     </Avatar>
-                    <Typography fontWeight="bold">{selectedChain?.name.split(" ")[0]}</Typography>
+                    <Typography fontWeight="bold">
+                        {selectedChain?.name.split(" ")[0]}
+                    </Typography>
                 </Box>
 
                 <IconButton onClick={refresh}>
@@ -79,74 +120,63 @@ const Activity = ({ selectedChain }) => {
             {loading && <CircularProgress size={24} />}
             {error && <Typography color="error">{error}</Typography>}
 
-            {/* Transaction List */}
+            {/* Empty */}
             {history.length === 0 && !loading ? (
                 <Typography variant="body2" color="text.secondary">
                     No transactions yet.
                 </Typography>
             ) : (
                 <List sx={{ height: "30vh", overflowY: "auto" }}>
-                    {history.map((tx) => (
-                        <ListItem
-                            key={tx.txHash}
-                            sx={{
-                                mb: 1,
-                                borderRadius: 2,
-                                bgcolor: "background.paper",
-                                boxShadow: 1,
-                                p: 1.5,
-                            }}
-                        >
-                            {/* <ListItemAvatar>
-                                <Avatar
-                                    sx={{
-                                        bgcolor: tx.status === "failed" ? "error.main" : "primary.main",
-                                    }}
-                                >
-                                    {tx.amount[0]}
-                                </Avatar>
-                            </ListItemAvatar> */}
+                    {Object.keys(grouped).map((date) => (
+                        <Box key={date} mb={2}>
+                            <Typography
+                                variant="subtitle2"
+                                color="text.secondary"
+                                sx={{ mb: 1 }}
+                            >
+                                {date}
+                            </Typography>
+                            {grouped[date].map((tx) => {
+                                const meta = getTxMeta(tx, selectedChain?.nativeSymbol, userWalletAddress);
+                                const status = getStatusMeta(tx.status);
+                                return (
+                                    <ListItem
+                                        key={tx.txHash}
+                                        sx={{
+                                            borderRadius: 2,
+                                            bgcolor: "background.paper",
+                                            boxShadow: 1,
+                                            mb: 1,
+                                            p: 1.5,
+                                        }}
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar sx={{ bgcolor: "grey.100" }}>{meta.icon}</Avatar>
+                                        </ListItemAvatar>
 
-                            <ListItemText
-                                primary={
-                                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                                        <Typography fontWeight="bold">
-                                            {tx.amount} {selectedChain?.nativeSymbol}
-                                        </Typography>
-                                        {statusChip(tx.status)}
-                                    </Box>
-                                }
-                                secondary={
-                                    <Box display="flex" flexDirection="column" gap={0.5}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            To: {truncate(tx.to)}
-                                        </Typography>
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <Tooltip
-                                                title={copiedHash === tx.txHash ? "Copied!" : "Copy Hash"}
-                                            >
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleCopy(tx.txHash)}
-                                                >
-                                                    <ContentCopyIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Typography
-                                                variant="caption"
-                                                color="text.disabled"
-                                                sx={{ wordBreak: "break-all" }}
-                                            >
-                                                {truncate(tx.txHash)}
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="caption" color="text.disabled">
-                                            {new Date(tx.timestamp).toLocaleString()}
-                                        </Typography>
-                                    </Box>
-                                }
-                            />
-                        </ListItem>
+                                        <ListItemText
+                                            primary={
+                                                <Box display="flex" justifyContent="space-between">
+                                                    <Typography fontWeight="bold">{meta.label}</Typography>
+                                                    <Typography fontWeight="bold">{meta.amount}</Typography>
+                                                </Box>
+                                            }
+                                            secondary={
+                                                <Box display="flex" alignItems="center" gap={0.5}>
+                                                    {status.icon}
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{ color: status.color }}
+                                                    >
+                                                        {status.text}
+                                                    </Typography>
+                                                </Box>
+                                            }
+                                        />
+                                    </ListItem>
+                                );
+                            })}
+                        </Box>
                     ))}
                 </List>
             )}
