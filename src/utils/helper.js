@@ -86,3 +86,16 @@ export function findAccountNameOrIndex(wallets, targetAddress) {
 
     return null;
 }
+export function getTransactionHistory() {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ type: "GET_TX_HISTORY" }, (response) => {
+            if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+            } else if (!response?.success) {
+                reject(response?.error || "Failed to fetch history");
+            } else {
+                resolve(response.txs || []);
+            }
+        });
+    });
+}
