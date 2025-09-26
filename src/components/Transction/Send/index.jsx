@@ -13,8 +13,13 @@ import {
     Divider,
     Card,
     CardContent,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
 } from "@mui/material";
-import { isAddress } from "ethers"; // ethers v6
+import { formatUnits, isAddress, parseUnits } from "ethers"; // ethers v6
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+
 
 // helper: promise wrapper for background requests
 function bgRequest(message) {
@@ -35,17 +40,55 @@ const SendModal = ({
     const [amount, setAmount] = useState("");
     const [balance, setBalance] = useState("0");
     const [gasFee, setGasFee] = useState(null);
+    const [customGasPrice, setCustomGasPrice] = useState(""); // ✅ for override
+    const [customGasLimit, setCustomGasLimit] = useState(); // ✅ for override
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [successTx, setSuccessTx] = useState("");
-    console.log("selected chains :", chain)
+    const [finalFee, setFinalFee] = useState(null); // fee displayed to user
 
-    // reset on modal close
+
+    const handleCustomGasChange = (field, value) => {
+        let num = Number(value);
+
+        if (isNaN(num) || num < 0) num = 0;
+
+        if (field === "gasLimit" && num < 21000) {
+            num = 21000; // minimum safe
+        }
+
+        if (field === "gasPrice" && num === 0) {
+            num = 1; // set a minimal non-zero value
+        }
+
+        if (field === "gasPrice") setCustomGasPrice(num);
+        if (field === "gasLimit") setCustomGasLimit(num);
+    };
+
+    useEffect(() => {
+        if (!gasFee) return;
+
+        const gasPrice = customGasPrice || gasFee.gasPrice; // Gwei
+        const gasLimit = customGasLimit || gasFee.gasLimit;
+
+        if (Number(gasPrice) > 0 && Number(gasLimit) >= 21000) {
+            const gasPriceWei = parseUnits(gasPrice.toString(), "gwei");
+            const feeWei = gasPriceWei * BigInt(gasLimit);
+            const feeEth = formatUnits(feeWei, "ether");
+            setFinalFee(feeEth);
+        } else {
+            setFinalFee(gasFee.estimatedFee);
+        }
+    }, [gasFee, customGasPrice, customGasLimit]);
+
+    // reset state when closing
     useEffect(() => {
         if (!open) {
             setToAddress("");
             setAmount("");
             setGasFee(null);
+            setCustomGasPrice("");
+            setCustomGasLimit("");
             setError("");
             setLoading(false);
             setSuccessTx("");
@@ -53,7 +96,7 @@ const SendModal = ({
         }
     }, [open]);
 
-    // fetch fresh balance when opened
+    // fetch balance
     useEffect(() => {
         if (!open || !fromAddress || !chain?.rpcUrl) return;
         let mounted = true;
@@ -65,7 +108,6 @@ const SendModal = ({
                     payload: { address: fromAddress.trim(), rpcUrl: chain.rpcUrl },
                 });
                 if (!mounted) return;
-                console.log("front end resp : ", res)
                 if (res.success) setBalance(res.balance);
                 else setError(res.error || "Failed to fetch balance");
             } catch (err) {
@@ -78,7 +120,7 @@ const SendModal = ({
         };
     }, [open, fromAddress, chain?.rpcUrl]);
 
-    // estimate fee on inputs change (debounced)
+    // estimate fee with debounce
     useEffect(() => {
         if (!open || !fromAddress || !chain?.rpcUrl) return;
         if (!toAddress || !amount) {
@@ -89,9 +131,8 @@ const SendModal = ({
         let mounted = true;
         const timer = setTimeout(async () => {
             try {
-                // ✅ balance check first
                 const amtNum = Number(amount);
-                const balNum = Number(balance); // balance should already be in ETH string or number
+                const balNum = Number(balance);
 
                 if (isNaN(amtNum) || amtNum <= 0) {
                     if (mounted) {
@@ -104,12 +145,11 @@ const SendModal = ({
                 if (amtNum > balNum) {
                     if (mounted) {
                         setGasFee(null);
-                        setError("Amount exceeds available balance");
+                        setError("Amount exceeds balance");
                     }
                     return;
                 }
 
-                // ✅ only estimate if balance is sufficient
                 const res = await bgRequest({
                     type: "ESTIMATE_FEE",
                     payload: {
@@ -123,6 +163,8 @@ const SendModal = ({
                 if (!mounted) return;
                 if (res?.success) {
                     setGasFee(res);
+                    setCustomGasLimit(res?.gasLimit);
+                    setCustomGasPrice(res?.gasPrice)
                     setError("");
                 } else {
                     setGasFee(null);
@@ -140,8 +182,9 @@ const SendModal = ({
             mounted = false;
             clearTimeout(timer);
         };
-    }, [toAddress, amount, fromAddress, chain?.rpcUrl, open, balance, setGasFee]);
+    }, [toAddress, amount, fromAddress, chain?.rpcUrl, open, balance]);
 
+    // handle send
     const handleSend = useCallback(async () => {
         setError("");
         setSuccessTx("");
@@ -154,22 +197,20 @@ const SendModal = ({
             return;
         }
 
-        // validate address/ENS
         if (!isAddress(trimmedTo) && !trimmedTo.includes(".")) {
             setError("Invalid recipient address (must be 0x or ENS).");
             return;
         }
 
-        // validate amount
         if (Number(trimmedAmount) <= 0) {
             setError("Amount must be greater than 0.");
             return;
         }
 
-        // check funds
-        const feeDecimal = gasFee ? Number(gasFee) : 0;
+        const feeDecimal = gasFee ? Number(gasFee.estimatedFee) : 0;
         const balanceDecimal = Number(balance);
         const amountDecimal = Number(trimmedAmount);
+
         if (balanceDecimal < amountDecimal + feeDecimal) {
             setError("Insufficient balance for amount + fee.");
             return;
@@ -178,12 +219,8 @@ const SendModal = ({
         try {
             setLoading(true);
 
-            // 🔑 replace this with decrypted privateKey flow
-
-            const privateKey = CurrentAccount?.account?.chains[0]?.privateKey
-            if (!privateKey) {
-                throw new Error("Missing private key. Please unlock your wallet.");
-            }
+            const privateKey = CurrentAccount?.account?.chains[0]?.privateKey;
+            if (!privateKey) throw new Error("Missing private key.");
 
             const res = await bgRequest({
                 type: "SEND_TX",
@@ -193,12 +230,12 @@ const SendModal = ({
                     amount: trimmedAmount,
                     rpcUrl: chain.rpcUrl,
                     privateKey,
+                    gasPrice: customGasPrice || undefined, // ✅ pass override
+                    gasLimit: customGasLimit || undefined, // ✅ pass override
                 },
             });
 
             setLoading(false);
-
-
 
             if (res?.success) {
                 setSuccessTx(res.txHash);
@@ -209,37 +246,23 @@ const SendModal = ({
             setLoading(false);
             setError(err.message || "Unexpected error");
         }
-    }, [toAddress, amount, gasFee, balance, chain, fromAddress]);
+    }, [toAddress, amount, gasFee, balance, chain, fromAddress, customGasPrice, customGasLimit]);
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>Send {chain?.name}</DialogTitle>
             <DialogContent>
-
                 <Box mb={2}>
-                    <Card
-                        variant="outlined"
-                        sx={{
-
-                        }}
-                    >
+                    <Card variant="outlined">
                         <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                            {/* Title */}
-                            <Typography
-                                variant="overline"
-                                sx={{ fontWeight: 600, color: "text.secondary", letterSpacing: 1 }}
-                            >
+                            <Typography variant="overline" sx={{ fontWeight: 600, color: "text.secondary" }}>
                                 From Account
                             </Typography>
-
-                            {/* Account name */}
                             <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.2 }}>
                                 {typeof AccountTitile === "string" && AccountTitile.trim() !== ""
                                     ? AccountTitile
                                     : `Account ${AccountTitile + 1}`}
                             </Typography>
-
-                            {/* Address */}
                             <Typography
                                 variant="body2"
                                 sx={{
@@ -248,25 +271,21 @@ const SendModal = ({
                                     p: 0.8,
                                     borderRadius: 1.5,
                                     wordBreak: "break-all",
-                                    color: "text.primary",
                                 }}
                             >
                                 {`${fromAddress.slice(0, 10)}...${fromAddress.slice(-6)}`}
                             </Typography>
-
-                            {/* Balance */}
                             <Box mt={1.5} display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Balance
                                 </Typography>
                                 <Typography variant="body2" fontWeight={600}>
-                                    {Number(balance).toFixed(2)} {chain?.nativeSymbol}
+                                    {Number(balance).toFixed(4)} {chain?.nativeSymbol}
                                 </Typography>
                             </Box>
                         </CardContent>
                     </Card>
                 </Box>
-
 
                 <Divider sx={{ mb: 2 }} />
 
@@ -275,6 +294,7 @@ const SendModal = ({
                     label="Recipient address or ENS"
                     fullWidth
                     value={toAddress}
+                    size="small"
                     onChange={(e) => setToAddress(e.target.value)}
                     disabled={loading || !!successTx}
                 />
@@ -284,15 +304,49 @@ const SendModal = ({
                     label={`Amount (${chain?.nativeSymbol})`}
                     fullWidth
                     type="number"
+                    size="small"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     disabled={loading || !!successTx}
                 />
-                {console.log("gasFee gasFee gasFee gasFee :", gasFee)}
-                {gasFee && (
+
+                {finalFee && (
                     <Typography mt={1} variant="body2" color="text.secondary">
-                        Estimated Gas Fee: {gasFee?.estimatedFee} {chain?.nativeSymbol}
+                        Estimated Gas Fee: {finalFee} {chain?.nativeSymbol}
                     </Typography>
+                )}
+
+                {gasFee && (
+                    <Accordion sx={{ mt: 2 }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Advanced (Custom Gas)
+                            </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <TextField
+                                margin="dense"
+                                label="Gas Price (Gwei)"
+                                type="number"
+                                size="small"
+                                value={customGasPrice}
+                                onChange={(e) => handleCustomGasChange("gasPrice", e.target.value)}
+                                inputProps={{ min: 1 }}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                            <TextField
+                                margin="dense"
+                                label="Gas Limit"
+                                type="number"
+                                size="small"
+                                value={customGasLimit}
+                                onChange={(e) => handleCustomGasChange("gasLimit", e.target.value)}
+                                inputProps={{ min: 21000 }}
+                                fullWidth
+                            />
+                        </AccordionDetails>
+                    </Accordion>
                 )}
 
                 {error && (
@@ -302,17 +356,12 @@ const SendModal = ({
                 )}
 
                 {successTx && (
-                    <Typography mt={1} color="primary" variant="body2">
-                        ✅ Transaction sent! <br />
-                        <a
-                            href={`${chain?.explorerUrl}/tx/${successTx}`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            View on Explorer
-                        </a>
+                    <Typography mt={1} color="primary" variant="body2" textAlign="center">
+                        ✅ Transaction sent!<br />
+                        {successTx}
                     </Typography>
                 )}
+
             </DialogContent>
 
             <DialogActions>
@@ -323,7 +372,7 @@ const SendModal = ({
                     <Button
                         variant="contained"
                         onClick={handleSend}
-                        disabled={loading}
+                        disabled={!gasFee || loading || !amount || !toAddress}
                         startIcon={loading ? <CircularProgress size={16} /> : null}
                     >
                         {loading ? "Sending..." : "Send"}

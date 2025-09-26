@@ -56,14 +56,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const estimatedFee = ethers.formatEther(feeBN);
 
                 console.log("⛽ Gas estimated:", {
-                    gasPrice: ethers.formatUnits(feeData.gasPrice),
+                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
                     gasLimit: gasLimit.toString(),
                     estimatedFee,
                 });
 
                 sendResponse({
                     success: true,
-                    gasPrice: ethers.formatUnits(feeData.gasPrice),
+                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
                     gasLimit: gasLimit.toString(),
                     estimatedFee,
                 });
