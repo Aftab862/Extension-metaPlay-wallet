@@ -134,7 +134,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                                         {selectedChain?.nativeCurrency?.name}
                                     </Typography>
                                     <Typography fontSize="0.85rem" color="text.secondary">
-                                        Native Balance
+                                        Native
                                     </Typography>
                                 </Box>
                                 <Box textAlign="right">

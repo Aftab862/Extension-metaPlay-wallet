@@ -254,8 +254,8 @@ const SendModal = ({
                 <Box mb={2}>
                     <Card variant="outlined">
                         <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                            <Typography variant="overline" sx={{ fontWeight: 600, color: "text.secondary" }}>
-                                From Account
+                            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                From
                             </Typography>
                             <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.2 }}>
                                 {typeof AccountTitile === "string" && AccountTitile.trim() !== ""
@@ -280,7 +280,7 @@ const SendModal = ({
                                     Balance
                                 </Typography>
                                 <Typography variant="body2" fontWeight={600}>
-                                    {Number(balance).toFixed(4)} {chain?.nativeSymbol}
+                                    {Number(balance).toFixed(4)} {chain?.nativeCurrency?.symbol}
                                 </Typography>
                             </Box>
                         </CardContent>
@@ -291,7 +291,7 @@ const SendModal = ({
 
                 <TextField
                     margin="dense"
-                    label="Recipient address or ENS"
+                    label="Recipient address"
                     fullWidth
                     value={toAddress}
                     size="small"
@@ -301,7 +301,7 @@ const SendModal = ({
 
                 <TextField
                     margin="dense"
-                    label={`Amount (${chain?.nativeSymbol})`}
+                    label={`Amount (${chain?.nativeCurrency?.symbol})`}
                     fullWidth
                     type="number"
                     size="small"
@@ -312,7 +312,7 @@ const SendModal = ({
 
                 {finalFee && (
                     <Typography mt={1} variant="body2" color="text.secondary">
-                        Estimated Gas Fee: {finalFee} {chain?.nativeSymbol}
+                        Estimated Gas Fee: {finalFee} {chain?.nativeCurrency?.symbol}
                     </Typography>
                 )}
 
