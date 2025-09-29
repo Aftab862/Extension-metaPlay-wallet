@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Tab, Tabs, } from "@mui/material";
-import TokensTab from "./TokensTab";
+import TokensTab from "./TokenTab";
 import Activity from "./Activity";
 
 function TabPanel({ children, value, index }) {

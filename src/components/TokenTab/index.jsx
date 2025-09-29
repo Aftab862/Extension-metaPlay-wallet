@@ -9,18 +9,27 @@ import {
 import React, { useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { mapColors } from "../utils/helper";
+import { mapColors } from "../../utils/helper";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
-import ImportTokenDialog from "./TokenImportModal";
+import ImportTokenDialog from "../TokenImportModal";
 import { ethers } from "ethers";
-import { saveToLocalStorage } from "../utils/storage";
-import { CHAIN_LIST } from "../utils/keys";
+import { saveToLocalStorage } from "../../utils/storage";
+import { CHAIN_LIST } from "../../utils/keys";
+import TokenDetailsModal from "./TokenDetailsModal";
+import SendTokenModal from "./SendTokenModal";
+import ReceiveTokenModal from "./ReceiveTokenModal";
+import ReceiveModal from "../Transction/Receive";
 
 const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, setReferesh, userBalance }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [selectedToken, setSelectedToken] = useState(null);
+    const [sendOpen, setSendOpen] = useState(false);
+    const [receiveOpen, setReceiveOpen] = useState(false);
+    console.log("selected token  :", selectedToken)
+
 
     const handleMenuOpen = (event) => setMenuAnchor(event.currentTarget);
     const handleMenuClose = () => setMenuAnchor(null);
@@ -154,12 +163,14 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                                         alignItems="center"
                                         py={1.2}
                                         borderBottom="1px solid #f4f4f4"
+                                        onClick={() => setSelectedToken(t)}
+                                        sx={{ cursor: "pointer", "&:hover": { bgcolor: "#fafafa" } }}
                                     >
                                         <Box>
                                             <Typography fontWeight="500">{t.name}</Typography>
                                             {t?.address && (
                                                 <Typography fontSize="0.75rem" color="text.secondary">
-                                                    {t.address.slice(0, 6)}...${t.address.slice(-4)}
+                                                    {t.address.slice(0, 6)}...{t.address.slice(-4)}
                                                 </Typography>
                                             )}
                                         </Box>
@@ -202,6 +213,32 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                 referesh={referesh}
                 setReferesh={setReferesh}
             />
+
+
+
+            <TokenDetailsModal
+                open={!!selectedToken}
+                token={selectedToken}
+                onClose={() => setSelectedToken(null)}
+                onSend={() => { setSendOpen(true); }}
+                onReceive={() => { setReceiveOpen(true); }}
+            />
+
+            <SendTokenModal
+                open={sendOpen}
+                onClose={() => setSendOpen(false)}
+                token={selectedToken}
+                userWallet={userWalletAddress}
+                rpcUrl={selectedChain?.rpcUrl}
+            />
+
+            <ReceiveModal
+                open={receiveOpen}
+                onClose={() => setReceiveOpen(false)}
+                address={selectedToken?.address || ""}
+                AccountTitile={selectedToken?.name || ""}
+            />
+
         </div>
     );
 };
