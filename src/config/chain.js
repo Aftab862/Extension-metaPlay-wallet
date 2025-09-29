@@ -1,5 +1,7 @@
 // // src/config/evmChains.js
-const API_KEY = "G1bAPRusuEnETMRFgNDU6Eg-ntLJwT43"
+// const API_KEY = "G1bAPRusuEnETMRFgNDU6Eg-ntLJwT43"
+
+const API_KEY = "6RW4_bP3AEOZffLygkqmRTM58lp01gz9"
 
 export const EVM_CHAINS = [
     {

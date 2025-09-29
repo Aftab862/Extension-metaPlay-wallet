@@ -11,6 +11,7 @@ db.version(1).stores({
 });
 
 
+const API_KEY = "6RW4_bP3AEOZffLygkqmRTM58lp01gz9"
 
 // Utility: Save transaction
 async function saveTransaction(tx) {
@@ -167,20 +168,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         (async () => {
             const { chainId, address } = request.payload || {};
             try {
-                let all = await db.transactions.toArray();
+                let txs = [];
 
-                const filtered = all.filter((t) => {
-                    if (chainId && t.chainId !== chainId) return false;
-                    if (address) {
-                        const addr = address.toLowerCase();
-                        return (
-                            (t.from && t.from.toLowerCase() === addr) ||
-                            (t.to && t.to.toLowerCase() === addr)
-                        );
-                    }
-                    return true;
-                });
-                sendResponse({ success: true, tx: filtered });
+                if (address && chainId) {
+                    // Example for Ethereum Mainnet with Alchemy
+
+                    const url = `https://eth-mainnet.g.alchemy.com/v2/${API_KEY}`;
+
+                    const body = {
+                        jsonrpc: "2.0",
+                        id: 1,
+                        method: "alchemy_getAssetTransfers",
+                        params: [
+                            {
+                                fromBlock: "0x0",
+                                toBlock: "latest",
+                                category: ["external", "internal", "erc20", "erc721"],
+                                withMetadata: true,
+                                toAddress: address,
+                                fromAddress: address,
+                                maxCount: "0x28", // 40 in hex
+                            },
+                        ],
+                    };
+
+                    const res = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body),
+                    });
+
+                    const data = await res.json();
+                    txs = data.result?.transfers || [];
+                }
+
+                // Optional: Save into IndexedDB for offline use
+                await db.transactions.bulkPut(txs);
+
+                sendResponse({ success: true, tx: txs });
             } catch (err) {
                 console.error("❌ GET_TX_HISTORY error:", err);
                 sendResponse({ success: false, error: err.message });
