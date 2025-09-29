@@ -85,7 +85,7 @@ const getStatusMeta = (status) => {
 
 const Activity = ({ selectedChain, userWalletAddress }) => {
     const chainId = loadFromLocalStorage(CHAIN_ID);
-    const { history, loading, error, refresh } = useTransactionHistory(false, 10000, chainId, userWalletAddress);
+    const { history, loading, error, refresh } = useTransactionHistory(false, 10000, chainId, userWalletAddress, selectedChain?.explorerUrl, selectedChain?.rpcUrl);
     const grouped = groupByDate(history || []);
 
     return (

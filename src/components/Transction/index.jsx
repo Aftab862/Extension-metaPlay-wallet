@@ -10,20 +10,14 @@ import {
     findAccountNameOrIndex,
 } from "../../utils/helper";
 
-const Transaction = ({ userWalletAddress, wallet, selectedChain }) => {
+const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, setBalance }) => {
     const [loading, setLoading] = useState(false);
     const [openReceive, setOpenReceive] = useState(false);
     const [openSend, setOpenSend] = useState(false);
-    const [userBalance, setBalance] = useState(null);
     const [error, setError] = useState(null);
 
     const AccountTitle = findAccountNameOrIndex(wallet, userWalletAddress);
     const Account = findAccountByAddress(wallet, userWalletAddress);
-
-    console.log("selected account :", Account);
-    console.log("selected chain :", selectedChain);
-
-
 
     const fetchBalance = useCallback(async () => {
         if (!userWalletAddress || !selectedChain?.rpcUrl) return;
@@ -41,7 +35,7 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain }) => {
             });
 
             if (res.success) {
-                setBalance(res.balance);
+                setBalance(Number(res.balance).toFixed(4));
             } else {
                 setError(res.error || "Failed to fetch balance");
             }

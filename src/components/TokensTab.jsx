@@ -17,7 +17,7 @@ import { ethers } from "ethers";
 import { saveToLocalStorage } from "../utils/storage";
 import { CHAIN_LIST } from "../utils/keys";
 
-const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, setReferesh }) => {
+const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, setReferesh, userBalance }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -43,17 +43,8 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                 const updatedTokens = await Promise.all(
                     selectedChain.tokens.map(async (t) => {
                         try {
-                            if (t.isNative) {
-                                // native coin balance
-                                const rawBalance = await provider.getBalance(userWalletAddress);
-                                const formatted = ethers.formatUnits(rawBalance, t.decimals);
+                            {
 
-                                return {
-                                    ...t,
-                                    balance: parseFloat(formatted).toFixed(4),
-                                };
-                            } else {
-                                // ERC-20 balance
                                 const contract = new ethers.Contract(
                                     t.address,
                                     ["function balanceOf(address owner) view returns (uint256)"],
@@ -81,6 +72,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                             : chain
                     )
                 );
+
             } catch (err) {
                 console.error("❌ Error in fetchBalances:", err);
             } finally {
@@ -89,7 +81,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
         };
 
         fetchBalances();
-    }, [userWalletAddress, setAllChains]);
+    }, [userWalletAddress, setAllChains, userBalance]);
 
 
     return (
@@ -122,42 +114,72 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                     </Box>
                 </Box>
 
+
                 <Box px={2} sx={{ height: "32vh", overflowY: "auto" }}>
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={3}>
                             <CircularProgress size={24} />
                         </Box>
-                    ) : selectedChain?.tokens.length > 0 ? (
-                        selectedChain?.tokens.map((t) => (
+                    ) : (
+                        <>
+                            {/* Chain header */}
                             <Box
-                                key={t.address}
                                 display="flex"
                                 justifyContent="space-between"
                                 alignItems="center"
-                                py={1}
-                                borderBottom="1px solid #eee"
+                                py={1.5}
                             >
                                 <Box>
-                                    <Typography fontWeight="bold">{t.name}</Typography>
-                                    {t?.address && (
-                                        <Typography fontSize="0.8rem" color="gray">
-                                            {t.isNative
-                                                ? "Native"
-                                                : `${t.address.slice(0, 6)}...${t.address.slice(-4)}`}
-                                        </Typography>
-                                    )}
+                                    <Typography fontWeight="bold">
+                                        {selectedChain?.nativeCurrency?.name}
+                                    </Typography>
+                                    <Typography fontSize="0.85rem" color="text.secondary">
+                                        Native Balance
+                                    </Typography>
                                 </Box>
-
                                 <Box textAlign="right">
-                                    <Typography>{t.balance}</Typography>
-                                    <Typography>{t.symbol}</Typography>
+                                    <Typography fontWeight="bold">
+                                        {userBalance ?? "$0.00"}
+                                    </Typography>
                                 </Box>
                             </Box>
-                        ))
-                    ) : (
-                        <Typography color="text.secondary">No tokens found</Typography>
+
+                            {/* Token list */}
+                            {selectedChain?.tokens?.length > 0 ? (
+                                selectedChain.tokens.map((t) => (
+                                    <Box
+                                        key={t.address || t.symbol}
+                                        display="flex"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        py={1.2}
+                                        borderBottom="1px solid #f4f4f4"
+                                    >
+                                        <Box>
+                                            <Typography fontWeight="500">{t.name}</Typography>
+                                            {t?.address && (
+                                                <Typography fontSize="0.75rem" color="text.secondary">
+                                                    {t.address.slice(0, 6)}...${t.address.slice(-4)}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                        <Box textAlign="right">
+                                            <Typography fontWeight="500">{t.balance}</Typography>
+                                            <Typography fontSize="0.8rem" color="text.secondary">
+                                                {t.symbol}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                ))
+                            ) : (
+                                <Typography color="text.secondary" py={2} textAlign="center">
+                                    No tokens found
+                                </Typography>
+                            )}
+                        </>
                     )}
                 </Box>
+
             </Box>
 
             {/* Menu */}

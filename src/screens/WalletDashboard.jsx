@@ -60,6 +60,7 @@ const WalletDashboard = ({
     const [accountDetailModal, setAccountdetailModal] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(null);
     const [revelSecreteModal, setRevelSecreteModal] = useState(false);
+    const [userBalance, setBalance] = useState(null);
 
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
@@ -335,6 +336,8 @@ const WalletDashboard = ({
                         userWalletAddress={userWalletAddress}
                         wallet={wallets}
                         selectedChain={selectedChain}
+                        userBalance={userBalance}
+                        setBalance={setBalance}
                     />
 
                     {/* Assets */}
@@ -345,6 +348,8 @@ const WalletDashboard = ({
                         referesh={referesh}
                         setReferesh={setReferesh}
                         userWalletAddress={userWalletAddress}
+                        userBalance={userBalance}
+                        setBalance={setBalance}
                     />
                 </>
             )}

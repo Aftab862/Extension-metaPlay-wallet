@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const useTransactionHistory = (autoRefresh = false, interval = 10000, chainId, address) => {
+export const useTransactionHistory = (autoRefresh = false, interval = 10000, chainId, address, explorerApiUrl, rpcUrl,) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -10,7 +10,7 @@ export const useTransactionHistory = (autoRefresh = false, interval = 10000, cha
             setLoading(true);
             const result = await chrome.runtime.sendMessage({
                 type: "GET_TX_HISTORY",
-                payload: { chainId, address },
+                payload: { chainId, address, rpcUrl, explorerApiUrl },
             });
             console.log("tranactions received   :", result)
             setHistory(result?.tx || []);
