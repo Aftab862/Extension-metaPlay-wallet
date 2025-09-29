@@ -106,11 +106,11 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                         <Avatar
                             sx={{
                                 fontSize: "10px",
-                                bgcolor: mapColors(selectedChain?.nativeSymbol),
+                                bgcolor: mapColors(selectedChain?.nativeCurrency?.symbol),
                                 mr: 1,
                             }}
                         >
-                            {selectedChain?.nativeSymbol}
+                            {selectedChain?.nativeCurrency?.symbol}
                         </Avatar>
                         <Typography fontWeight="bold">
                             {selectedChain?.name.split(" ")[0]}

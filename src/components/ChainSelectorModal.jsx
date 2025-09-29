@@ -57,8 +57,15 @@ export default function ChainSelectorModal({
         }
 
         const formatted = {
-            ...newChain,
+            name: newChain.name.trim(),
             chainId: parseInt(newChain.chainId, 10),
+            rpcUrl: newChain.rpcUrl.trim(),
+            explorerUrl: newChain.explorerUrl.trim(),
+            nativeCurrency: {
+                symbol: newChain.nativeSymbol.trim(),
+                name: newChain.name.trim(),
+                balance: "0.0000",
+            },
             tokens: [],
         };
 
@@ -145,16 +152,16 @@ export default function ChainSelectorModal({
                                     <ListItemAvatar>
                                         <Avatar
                                             sx={{
-                                                bgcolor: mapColors(chain.nativeSymbol),
+                                                bgcolor: mapColors(chain.nativeCurrency.name),
                                                 width: 36,
                                                 height: 36,
                                                 fontSize: "12px",
                                             }}
                                         >
-                                            {chain.nativeSymbol.slice(0, 3)}
+                                            {chain.nativeCurrency.name.slice(0, 1)}
                                         </Avatar>
                                     </ListItemAvatar>
-                                    <ListItemText primary={chain.name} secondary={chain.nativeSymbol} />
+                                    <ListItemText primary={chain.name} secondary={chain.nativeCurrency.name} />
                                 </ListItemButton>
                             </ListItem>
                         ))}

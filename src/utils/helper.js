@@ -86,3 +86,10 @@ export function findAccountNameOrIndex(wallets, targetAddress) {
 
     return null;
 }
+
+
+export function bgRequest(message) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(message, (res) => resolve(res));
+    });
+}

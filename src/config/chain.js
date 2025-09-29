@@ -5,18 +5,15 @@ export const EVM_CHAINS = [
     {
         name: "Ethereum",
         chainId: 1,
-        nativeSymbol: "ETH",
-        rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${API_KEY}`,
-        tokens: [
-            {
-                address: null, // or "0x0000000000000000000000000000000000000000"
-                symbol: "ETH",
-                decimals: 18,
-                name: "Ethereum",
-                balance: "0.0000",
-                isNative: true
-            },
+        nativeCurrency: {
+            symbol: "ETH",
 
+            name: "Ethereum",
+            balance: "0.0000"
+        },
+        rpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${API_KEY}`,
+        explorerUrl: "https://etherscan.io",  // added
+        tokens: [
             {
                 address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
                 symbol: "USDT",
@@ -31,102 +28,91 @@ export const EVM_CHAINS = [
                 name: "ChainLink Token",
                 balance: "0.0000"
             }
-        ],
+        ]
     },
     {
         name: "Binance Smart Chain",
         chainId: 56,
-        nativeSymbol: "BNB",
+        nativeCurrency: {
+            symbol: "BNB",
+
+            name: "BNB",
+            balance: "0.0000"
+        },
         rpcUrl: "https://bsc-dataseed.binance.org/",
+        explorerUrl: "https://bscscan.com",  // added
         tokens: [
             {
-                address: "0x0000000000000000000000000000000000000000", // native BNB placeholder
-                symbol: "BNB",
-                decimals: 18,
-                name: "BNB",
-                balance: "0.0000",
-                isNative: true
-            },
-            {
-                address: "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", // WBNB
+                address: "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
                 symbol: "WBNB",
                 decimals: 18,
                 name: "Wrapped BNB",
                 balance: "0.0000"
             },
             {
-                address: "0x55d398326f99059fF775485246999027B3197955", // USDT BEP20
+                address: "0x55d398326f99059fF775485246999027B3197955",
                 symbol: "USDT",
                 decimals: 18,
                 name: "Tether USD",
                 balance: "0.0000"
             }
         ]
-
     },
     {
         name: "VRCN chain",
-        nativeSymbol: "VRCN",
         chainId: 7131,
-        rpcUrl: 'https://rpc-mainnet-4.vrcchain.com/',
+        nativeCurrency: {
+            symbol: "V",
+
+            name: "VRCN",
+            balance: "0.0000"
+        },
+        rpcUrl: "https://rpc-mainnet-4.vrcchain.com/",
+        explorerUrl: "https://vrcchain.com/",  // your given
         tokens: [
-            {
-                address: "0x0000000000000000000000000000000000000000",
-                symbol: "V",
-                decimals: 18,
-                name: "VRCN",
-                balance: "0.0000",
-                isNative: true
-            },
             {
                 address: "0xa3E9cde10458091E0Da9eC29Df0179912645eeA9",
                 symbol: "MPT",
                 decimals: 18,
                 name: "MPT",
-                balance: "0.0000",
-            },
+                balance: "0.0000"
+            }
         ]
     },
     {
         name: "Polygon",
         chainId: 137,
-        nativeSymbol: "MATIC",
+        nativeCurrency: {
+            symbol: "MATIC",
+
+            name: "Polygon Matic",
+            balance: "0.0000"
+        },
         rpcUrl: "https://polygon-rpc.com",
-        tokens: [
-            {
-                address: "0x0000000000000000000000000000000000000000",
-                symbol: "M",
-                decimals: 18,
-                name: "Polygon Matic",
-                balance: "0.0000",
-                isNative: true
-            }]
+        explorerUrl: "https://polygonscan.com",  // found this :contentReference[oaicite:0]{index=0}
+        tokens: []
     },
     {
         name: "DXB chain",
         chainId: 1999,
-        nativeSymbol: "DXB",
-        rpcUrl: `https://rpc-testnet-1.vrcchain.com`,
+        nativeCurrency: {
+            symbol: "D",
+
+            name: "dxb",
+            balance: "0.0000"
+        },
+        rpcUrl: "https://rpc-testnet-1.vrcchain.com",
+        explorerUrl: "https://dxb.vrcchain.com/",  // your given
         tokens: [
-            {
-                address: "0x0000000000000000000000000000000000000000",
-                symbol: "D",
-                decimals: 18,
-                name: "dxb",
-                balance: "0.0000",
-                isNative: true
-            },
             {
                 address: "0x4EdcE81D8c1635A57d0F2Dd3DD0D0B25f173D145",
                 symbol: "MPT",
                 decimals: 18,
                 name: "MPT",
-                balance: "0.0000",
-            },
-        ],
-    },
-
-
+                balance: "0.0000"
+            }
+        ]
+    }
 ];
 
 

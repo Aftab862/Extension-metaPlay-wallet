@@ -103,11 +103,11 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                     <Avatar
                         sx={{
                             fontSize: "10px",
-                            bgcolor: mapColors(selectedChain?.nativeSymbol),
+                            bgcolor: mapColors(selectedChain?.nativeCurrency?.symbol),
                             mr: 1,
                         }}
                     >
-                        {selectedChain?.nativeSymbol}
+                        {selectedChain?.nativeCurrency?.symbol}
                     </Avatar>
                     <Typography fontWeight="bold">
                         {selectedChain?.name.split(" ")[0]}
@@ -148,7 +148,7 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                                 {date}
                             </Typography>
                             {grouped[date].map((tx) => {
-                                const meta = getTxMeta(tx, selectedChain?.nativeSymbol, userWalletAddress);
+                                const meta = getTxMeta(tx, selectedChain?.nativeCurrency?.symbol, userWalletAddress);
                                 const status = getStatusMeta(tx.status);
                                 return (
                                     <ListItem

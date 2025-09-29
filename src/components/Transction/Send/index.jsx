@@ -21,14 +21,10 @@ import { formatUnits, isAddress, parseUnits } from "ethers"; // ethers v6
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { loadFromLocalStorage } from "../../../utils/storage";
 import { CHAIN_ID } from "../../../utils/keys";
+import { bgRequest } from "../../../utils/helper";
 
 
 // helper: promise wrapper for background requests
-function bgRequest(message) {
-    return new Promise((resolve) => {
-        chrome.runtime.sendMessage(message, (res) => resolve(res));
-    });
-}
 
 const SendModal = ({
     open,
@@ -276,7 +272,8 @@ const SendModal = ({
                                     wordBreak: "break-all",
                                 }}
                             >
-                                {`${fromAddress.slice(0, 10)}...${fromAddress.slice(-6)}`}
+                                {/* {console.log("slice issue from address : ")} */}
+                                {`${fromAddress?.slice(0, 10)}...${fromAddress?.slice(-6)}`}
                             </Typography>
                             <Box mt={1.5} display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
