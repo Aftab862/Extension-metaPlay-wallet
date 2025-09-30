@@ -11,16 +11,15 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
+    IconButton,
+    Box,
+    Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CloseIcon from "@mui/icons-material/Close";
 import { ethers } from "ethers";
+import { bgRequest } from "../../utils/helper";
 
-// Utility: send message to background.js
-function bgRequest(type, payload) {
-    return new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type, payload }, (res) => resolve(res));
-    });
-}
 
 const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account }) => {
     const [toAddress, setToAddress] = useState("");
@@ -34,34 +33,42 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
 
     const [error, setError] = useState(null);
 
-    // 🟢 Estimate fee for ERC20 transfer
+    // 🟢 Fetch gas estimation
     useEffect(() => {
         if (!toAddress || !amount) {
             setGasInfo(null);
             setFinalFee(null);
+            setError(null);
+            setLoading(false);
             return;
         }
 
-        // 🚫 Skip gas estimation if balance is insufficient
         if (Number(amount) > Number(token?.balance || 0)) {
             setGasInfo(null);
             setFinalFee(null);
-            setLoading(false)
+            setLoading(false);
             setError("Insufficient token balance.");
             return;
         }
 
         const fetchFee = async () => {
+            setLoading(true);
             setError(null);
+
             try {
-                const res = await bgRequest("ESTIMATE_FEE_TOKEN", {
-                    from: userWallet,
-                    to: toAddress,
-                    amount,
-                    rpcUrl,
-                    chainId,
-                    tokenAddress: token.address,
-                    decimals: token.decimals,
+
+
+                const res = await bgRequest({
+                    type: "ESTIMATE_FEE_TOKEN",
+                    payload: {
+                        from: userWallet,
+                        to: toAddress,
+                        amount,
+                        rpcUrl,
+                        chainId,
+                        tokenAddress: token.address,
+                        decimals: token.decimals,
+                    },
                 });
 
                 if (res?.success) {
@@ -70,21 +77,25 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     setCustomGasLimit(res.gasLimit);
                 } else {
                     setError(res?.error || "Failed to estimate gas fee.");
+                    setGasInfo(null);
                 }
             } catch (err) {
                 setError(err.message || "Unexpected error during gas estimation.");
+                setGasInfo(null);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchFee();
-    }, [toAddress, amount, token, rpcUrl, userWallet, chainId]);
+    }, [toAddress, amount, token?.balance, rpcUrl, userWallet, chainId]);
 
-    // 🟢 Recalculate final fee if custom values change
+    // 🟢 Recalculate fee if custom gas values change
     useEffect(() => {
         if (!gasInfo) return;
 
         try {
-            const gasPrice = customGasPrice || gasInfo.gasPrice; // Gwei
+            const gasPrice = customGasPrice || gasInfo.gasPrice;
             const gasLimit = customGasLimit || gasInfo.gasLimit;
 
             const gasPriceWei = ethers.parseUnits(gasPrice.toString(), "gwei");
@@ -92,12 +103,12 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
             const feeEth = ethers.formatUnits(feeWei, "ether");
 
             setFinalFee(feeEth);
-        } catch (err) {
+        } catch {
             setFinalFee(gasInfo.estimatedFee);
         }
     }, [gasInfo, customGasPrice, customGasLimit]);
 
-    // 🟢 Handle send (ERC20 only)
+    // 🟢 Handle send
     const handleSend = async () => {
         setError(null);
 
@@ -117,17 +128,24 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
         try {
             setLoading(true);
 
-            const res = await bgRequest("SEND_TOKEN_TX", {
-                to: toAddress,
-                amount,
-                rpcUrl,
-                privateKey: Account?.account?.chains[0]?.privateKey,
-                chainId,
-                tokenAddress: token.address,
-                decimals: token.decimals,
-                gasPrice: customGasPrice,
-                gasLimit: customGasLimit,
+
+
+
+            const res = await bgRequest({
+                type: "SEND_TOKEN_TX",
+                payload: {
+                    to: toAddress,
+                    amount,
+                    rpcUrl,
+                    privateKey: Account?.account?.chains[0]?.privateKey,
+                    chainId,
+                    tokenAddress: token.address,
+                    decimals: token.decimals,
+                    gasPrice: customGasPrice,
+                    gasLimit: customGasLimit,
+                },
             });
+
 
             if (res?.success) {
                 console.log("✅ Token sent:", res.txHash);
@@ -144,8 +162,21 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-            <DialogTitle>Send {token?.symbol}</DialogTitle>
-            <DialogContent>
+            {/* Header with Close Button */}
+            <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                Send {token?.symbol}
+                <IconButton onClick={onClose} size="small">
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+
+            <DialogContent dividers>
+                {/* Balance Section */}
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Balance: {token?.balance} {token?.symbol}
+                </Typography>
+
+                {/* Input Fields */}
                 <TextField
                     label="Recipient Address"
                     fullWidth
@@ -162,21 +193,21 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     onChange={(e) => setAmount(e.target.value)}
                 />
 
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Balance: {token?.balance} {token?.symbol}
-                </Typography>
-
-                {gasInfo ? (
+                {/* Gas Fee Display */}
+                {loading && toAddress && amount ? (
+                    <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                        <CircularProgress size={18} sx={{ mr: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            Estimating fee...
+                        </Typography>
+                    </Box>
+                ) : gasInfo && finalFee ? (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Estimated Gas Fee: {finalFee} ETH
+                        Estimated Gas Fee: <b>{finalFee} ETH</b>
                     </Typography>
-                ) : (
-                    amount &&
-                    toAddress && (
-                        <CircularProgress size={20} sx={{ mt: 1, display: "block" }} />
-                    )
-                )}
+                ) : null}
 
+                {/* Advanced Gas Controls */}
                 {gasInfo && (
                     <Accordion sx={{ mt: 2 }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -205,21 +236,26 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     </Accordion>
                 )}
 
-                {/* 🟢 Error message */}
+                {/* Error Message */}
                 {error && (
-                    <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                    <Typography color="error" variant="body2" sx={{ mt: 2 }}>
                         {error}
                     </Typography>
                 )}
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+
+            <Divider />
+
+            <DialogActions sx={{ p: 2 }}>
+                <Button onClick={onClose} disabled={loading}>
+                    Cancel
+                </Button>
                 <Button
-                    disabled={loading || !toAddress || !amount}
-                    onClick={handleSend}
                     variant="contained"
+                    onClick={handleSend}
+                    disabled={loading || !toAddress || !amount}
                 >
-                    {loading ? "Sending..." : "Send"}
+                    {loading ? "Sending..." : `Send ${token?.symbol}`}
                 </Button>
             </DialogActions>
         </Dialog>

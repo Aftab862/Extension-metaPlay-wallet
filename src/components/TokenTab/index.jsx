@@ -29,6 +29,8 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
     const [importOpen, setImportOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedToken, setSelectedToken] = useState(null);
+    const [tokenModal, setTokenModal] = useState(false);
+
     const [sendOpen, setSendOpen] = useState(false);
     const [receiveOpen, setReceiveOpen] = useState(false);
 
@@ -167,7 +169,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
                                         alignItems="center"
                                         py={1.2}
                                         borderBottom="1px solid #f4f4f4"
-                                        onClick={() => setSelectedToken(t)}
+                                        onClick={() => { setSelectedToken(t); setTokenModal(true) }}
                                         sx={{ cursor: "pointer", "&:hover": { bgcolor: "#fafafa" } }}
                                     >
                                         <Box>
@@ -221,10 +223,10 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
 
 
             <TokenDetailsModal
-                open={!!selectedToken}
+                open={tokenModal}
                 token={selectedToken}
-                onClose={() => setSelectedToken(null)}
-                onSend={() => { setSendOpen(true); }}
+                onClose={() => setTokenModal(false)}
+                onSend={() => { setSendOpen(true); setTokenModal(false) }}
                 onReceive={() => { setReceiveOpen(true); }}
             />
 
