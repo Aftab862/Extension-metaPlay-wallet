@@ -26,7 +26,7 @@ const RevealSecretModal = lazy(() => import("../components/AccountDetails/Reveal
 const Transction = lazy(() => import("../components/Transction"));
 
 // utils (keep these as normal imports because they’re small & used immediately)
-import { mapColors } from "../utils/helper";
+import { findAccountByAddress, findAccountNameOrIndex, mapColors } from "../utils/helper";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
@@ -71,6 +71,9 @@ const WalletDashboard = ({
         const address = selectedAccount?.chains?.find(c => c.type === "evm")?.address
         setUserWalletAddress(address);
     }, [selectedAccount]);
+
+    const AccountTitle = findAccountNameOrIndex(wallets, userWalletAddress);
+    const Account = findAccountByAddress(wallets, userWalletAddress);
 
 
     if (loading) return <Loader message="Adding account..." />;
@@ -338,6 +341,8 @@ const WalletDashboard = ({
                         selectedChain={selectedChain}
                         userBalance={userBalance}
                         setBalance={setBalance}
+                        AccountTitle={AccountTitle}
+                        Account={Account}
                     />
 
                     {/* Assets */}
@@ -350,6 +355,9 @@ const WalletDashboard = ({
                         userWalletAddress={userWalletAddress}
                         userBalance={userBalance}
                         setBalance={setBalance}
+                        wallet={wallets}
+                        AccountTitle={AccountTitle}
+                        Account={Account}
                     />
                 </>
             )}

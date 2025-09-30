@@ -10,14 +10,12 @@ import {
     findAccountNameOrIndex,
 } from "../../utils/helper";
 
-const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, setBalance }) => {
+const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, setBalance, AccountTitle, Account }) => {
     const [loading, setLoading] = useState(false);
     const [openReceive, setOpenReceive] = useState(false);
     const [openSend, setOpenSend] = useState(false);
     const [error, setError] = useState(null);
 
-    const AccountTitle = findAccountNameOrIndex(wallet, userWalletAddress);
-    const Account = findAccountByAddress(wallet, userWalletAddress);
 
     const fetchBalance = useCallback(async () => {
         if (!userWalletAddress || !selectedChain?.rpcUrl) return;

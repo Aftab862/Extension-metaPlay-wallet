@@ -21,15 +21,16 @@ import SendTokenModal from "./SendTokenModal";
 import ReceiveTokenModal from "./ReceiveTokenModal";
 import ReceiveModal from "../Transction/Receive";
 
-const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, setReferesh, userBalance }) => {
+const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
+    AccountTitle,
+    Account,
+    setReferesh, userBalance }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedToken, setSelectedToken] = useState(null);
     const [sendOpen, setSendOpen] = useState(false);
     const [receiveOpen, setReceiveOpen] = useState(false);
-    console.log("selected token  :", selectedToken)
-
 
     const handleMenuOpen = (event) => setMenuAnchor(event.currentTarget);
     const handleMenuClose = () => setMenuAnchor(null);
@@ -38,6 +39,9 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
         setImportOpen(true);
         handleMenuClose();
     };
+
+    console.log("selected account , ", Account, AccountTitle)
+    console.log("selected chain , ", selectedChain)
 
 
 
@@ -204,7 +208,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
             </Menu>
 
             {/* Import Token Modal */}
-            <ImportTokenDialog
+            {importOpen && <ImportTokenDialog
                 open={importOpen}
                 onClose={() => setImportOpen(false)}
                 rpcUrl={selectedChain?.rpcUrl}
@@ -213,7 +217,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                 referesh={referesh}
                 setReferesh={setReferesh}
             />
-
+            }
 
 
             <TokenDetailsModal
@@ -224,20 +228,23 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh, s
                 onReceive={() => { setReceiveOpen(true); }}
             />
 
-            <SendTokenModal
+            {sendOpen && <SendTokenModal
                 open={sendOpen}
                 onClose={() => setSendOpen(false)}
                 token={selectedToken}
                 userWallet={userWalletAddress}
                 rpcUrl={selectedChain?.rpcUrl}
-            />
+                chainId={selectedChain?.chainId}
+                AccountTitle={AccountTitle}
+                Account={Account}
+            />}
 
-            <ReceiveModal
+            {receiveOpen && <ReceiveModal
                 open={receiveOpen}
                 onClose={() => setReceiveOpen(false)}
                 address={selectedToken?.address || ""}
                 AccountTitile={selectedToken?.name || ""}
-            />
+            />}
 
         </div>
     );

@@ -214,6 +214,131 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+
+    // ------------------------
+    // ESTIMATE GAS for ERC20
+    // ------------------------
+    if (request.type === "ESTIMATE_FEE_TOKEN") {
+        (async () => {
+            try {
+                const { from, to, amount, rpcUrl, tokenAddress, decimals } = request.payload;
+
+                const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+                const feeData = await provider.getFeeData();
+                if (!feeData.gasPrice) throw new Error("No gas price available from RPC");
+
+                // ERC20 ABI (minimal)
+                const abi = ["function transfer(address to, uint256 value) returns (bool)"];
+                const contract = new ethers.Contract(tokenAddress, abi, provider);
+
+                // Build tx data
+                const value = ethers.parseUnits(amount, decimals);
+                const txData = await contract.transfer.populateTransaction(to, value);
+
+                // Estimate gas
+                const gasLimit = await provider.estimateGas({
+                    from,
+                    to: tokenAddress,
+                    data: txData.data,
+                });
+
+                const feeBN = feeData.gasPrice * gasLimit;
+                const estimatedFee = ethers.formatEther(feeBN);
+
+                console.log("⛽ ERC20 Gas estimated:", {
+                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
+                    gasLimit: gasLimit.toString(),
+                    estimatedFee,
+                });
+
+                sendResponse({
+                    success: true,
+                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
+                    gasLimit: gasLimit.toString(),
+                    estimatedFee,
+                });
+            } catch (err) {
+                console.error("❌ ESTIMATE_FEE_TOKEN error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+        return true;
+    }
+
+    // ------------------------
+    // SEND ERC20 TX
+    // ------------------------
+    if (request.type === "SEND_TOKEN_TX") {
+        (async () => {
+            try {
+                const { to, amount, rpcUrl, privateKey, chainId, tokenAddress, decimals, gasPrice, gasLimit } = request.payload;
+
+                const provider = new ethers.JsonRpcProvider(rpcUrl);
+                const wallet = new ethers.Wallet(privateKey, provider);
+
+                const abi = ["function transfer(address to, uint256 value) returns (bool)"];
+                const contract = new ethers.Contract(tokenAddress, abi, wallet);
+
+                // Build tx
+                const txOverrides = {};
+                if (gasPrice) txOverrides.gasPrice = ethers.parseUnits(gasPrice, "gwei");
+                if (gasLimit) txOverrides.gasLimit = BigInt(gasLimit);
+
+                const txResponse = await contract.transfer(
+                    to,
+                    ethers.parseUnits(amount, decimals),
+                    txOverrides
+                );
+
+                console.log("🚀 ERC20 Transaction sent:", txResponse.hash);
+
+                // Save pending tx in DB
+                await saveTransaction({
+                    txHash: txResponse.hash,
+                    from: wallet.address,
+                    to,
+                    amount,
+                    tokenAddress,
+                    status: "pending",
+                    chainId,
+                    timestamp: Date.now(),
+                });
+
+                // Wait for confirmation
+                provider.waitForTransaction(txResponse.hash).then(async (receipt) => {
+                    const finalStatus = receipt.status === 1 ? "confirmed" : "failed";
+
+                    await updateTransactionStatus(txResponse.hash, finalStatus);
+
+                    chrome.notifications.create(`tx-${txResponse.hash}`, {
+                        type: "basic",
+                        iconUrl: "icons/icon1.png",
+                        title: `Token Transfer ${finalStatus === "confirmed" ? "Confirmed ✅" : "Failed ❌"}`,
+                        message: `Sent ${amount} tokens to ${to}\nTx: ${txResponse.hash}`,
+                        priority: 2,
+                    });
+                });
+
+                sendResponse({ success: true, txHash: txResponse.hash });
+            } catch (err) {
+                console.error("❌ SEND_TOKEN_TX error:", err);
+
+                chrome.notifications.create({
+                    type: "basic",
+                    iconUrl: "icons/icon1.png",
+                    title: "Token Transfer Failed",
+                    message: err.message || "Something went wrong",
+                    priority: 2,
+                });
+
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+        return true;
+    }
+
+
     return false; // no handler matched
 });
 
