@@ -21,7 +21,7 @@ import { ethers } from "ethers";
 import { bgRequest } from "../../utils/helper";
 
 
-const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account }) => {
+const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account, chainName }) => {
     const [toAddress, setToAddress] = useState("");
     const [amount, setAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -203,7 +203,7 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     </Box>
                 ) : gasInfo && finalFee ? (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Estimated Gas Fee: <b>{finalFee} ETH</b>
+                        Estimated Gas Fee: <b>{finalFee} {chainName}</b>
                     </Typography>
                 ) : null}
 
