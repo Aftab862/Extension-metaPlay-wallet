@@ -21,3 +21,8 @@ export function decryptMnemonic(encrypted, password) {
 export function isWalletAvalailable() {
     return !!localStorage.getItem(WALLET_DATA_KEY);
 }
+
+export function encryptPk(privateKey, secretKey) {
+    const ciphertext = CryptoJS.AES.encrypt(privateKey, secretKey).toString();
+    return ciphertext;
+}
