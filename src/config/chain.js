@@ -9,7 +9,6 @@ export const EVM_CHAINS = [
         chainId: 1,
         nativeCurrency: {
             symbol: "ETH",
-
             name: "Ethereum",
             balance: "0.0000"
         },
@@ -37,20 +36,13 @@ export const EVM_CHAINS = [
         chainId: 56,
         nativeCurrency: {
             symbol: "BNB",
-
             name: "BNB",
             balance: "0.0000"
         },
         rpcUrl: "https://bsc-dataseed.binance.org/",
         explorerUrl: "https://bscscan.com",  // added
         tokens: [
-            {
-                address: "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-                symbol: "WBNB",
-                decimals: 18,
-                name: "Wrapped BNB",
-                balance: "0.0000"
-            },
+
             {
                 address: "0x55d398326f99059fF775485246999027B3197955",
                 symbol: "USDT",
@@ -64,8 +56,7 @@ export const EVM_CHAINS = [
         name: "VRCN chain",
         chainId: 7131,
         nativeCurrency: {
-            symbol: "V",
-
+            symbol: "VRCN",
             name: "VRCN",
             balance: "0.0000"
         },
@@ -98,9 +89,8 @@ export const EVM_CHAINS = [
         name: "DXB chain",
         chainId: 1999,
         nativeCurrency: {
-            symbol: "D",
-
-            name: "dxb",
+            symbol: "VRCN",
+            name: "VRCN",
             balance: "0.0000"
         },
         rpcUrl: "https://rpc-testnet-1.vrcchain.com",

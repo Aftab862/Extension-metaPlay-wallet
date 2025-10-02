@@ -9,10 +9,13 @@ import { loadFromLocalStorage, saveToLocalStorage } from "./storage";
 // import * as ecc from '@bitcoinerlab/secp256k1'
 // import { TronWeb } from "tronweb";
 import { encryptMnemonic } from "./cryptoUtils";
-import { WALLET_DATA_KEY } from "./keys";
+import { SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./keys";
 window.Buffer = Buffer
 // const bip32 = BIP32Factory(ecc)
 // const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' })
+
+const pass = loadFromLocalStorage(SESSION_PASSWORD_KEY);
+const decryptedPassword = pass ? atob(pass) : null;
 
 async function generateEvmWallet(mnemonicPhrase, index = 0) {
     const mnemonic = Mnemonic.fromPhrase(mnemonicPhrase)
@@ -50,7 +53,7 @@ export function normalizeWalletObject(walletObj, index) {
         chains: Object.entries(walletObj).map(([type, data]) => ({
             type,
             address: data.address,
-            privateKey: data.privateKey,
+            encryptedPrivateKey: encryptMnemonic(data.privateKey, decryptedPassword),
         })),
     };
 }
@@ -109,69 +112,69 @@ export const generateMnemonic = () => {
 };
 
 
-async function generateSolanaWallet(mnemonicPhrase, index = 0) {
-    const path = `m/44'/501'/${index}'`;
-    const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
-    const { key } = derivePath(path, seed.toString("hex"))
-    const keypair = Keypair.fromSeed(key.slice(0, 32))
+// async function generateSolanaWallet(mnemonicPhrase, index = 0) {
+//     const path = `m/44'/501'/${index}'`;
+//     const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
+//     const { key } = derivePath(path, seed.toString("hex"))
+//     const keypair = Keypair.fromSeed(key.slice(0, 32))
 
-    return {
-        chainType: "Solana",
-        address: keypair.publicKey.toBase58(),
-        privateKey: Buffer.from(keypair.secretKey).toString("hex"),
-        publicKey: keypair.publicKey.toBase58(),
-        derivationPath: path,
-    }
-}
+//     return {
+//         chainType: "Solana",
+//         address: keypair.publicKey.toBase58(),
+//         privateKey: Buffer.from(keypair.secretKey).toString("hex"),
+//         publicKey: keypair.publicKey.toBase58(),
+//         derivationPath: path,
+//     }
+// }
 
-async function generateTronWallet(mnemonicPhrase, index = 0) {
+// async function generateTronWallet(mnemonicPhrase, index = 0) {
 
-    const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
-    const root = bip32.fromSeed(seed)
-
-
-    const path = `m/44'/195'/0'/0/${index}`;
-    const child = root.derivePath(path);
+//     const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
+//     const root = bip32.fromSeed(seed)
 
 
-    const privateKey = Buffer.from(child.privateKey).toString('hex')
-    const publicKey = Buffer.from(child.publicKey).toString('hex')
+//     const path = `m/44'/195'/0'/0/${index}`;
+//     const child = root.derivePath(path);
 
 
-    const address = tronWeb.address.fromPrivateKey(privateKey)
+//     const privateKey = Buffer.from(child.privateKey).toString('hex')
+//     const publicKey = Buffer.from(child.publicKey).toString('hex')
 
-    return {
-        chainType: 'tron',
-        address,
-        privateKey,
-        publicKey,
-        derivationPath: path
-    }
-}
 
-async function generateBitcoinWallet(mnemonicPhrase, index = 0) {
-    // 1. Convert mnemonic → seed
-    const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
-    const root = bip32.fromSeed(seed)
+//     const address = tronWeb.address.fromPrivateKey(privateKey)
 
-    // 2. Use the dynamic index
-    const path = `m/84'/0'/0'/0/${index}`
-    const child = root.derivePath(path)
+//     return {
+//         chainType: 'tron',
+//         address,
+//         privateKey,
+//         publicKey,
+//         derivationPath: path
+//     }
+// }
 
-    // 3. Keys
-    const privateKey = Buffer.from(child.privateKey).toString('hex')
-    const publicKey = Buffer.from(child.publicKey).toString('hex')
+// async function generateBitcoinWallet(mnemonicPhrase, index = 0) {
+//     // 1. Convert mnemonic → seed
+//     const seed = await bip39.mnemonicToSeed(mnemonicPhrase)
+//     const root = bip32.fromSeed(seed)
 
-    // 4. Address
-    const { address } = bitcoin.payments.p2wpkh({
-        pubkey: Buffer.from(child.publicKey)
-    })
+//     // 2. Use the dynamic index
+//     const path = `m/84'/0'/0'/0/${index}`
+//     const child = root.derivePath(path)
 
-    return {
-        chainType: 'bitcoin',
-        address,
-        privateKey,
-        publicKey,
-        derivationPath: path
-    }
-}
+//     // 3. Keys
+//     const privateKey = Buffer.from(child.privateKey).toString('hex')
+//     const publicKey = Buffer.from(child.publicKey).toString('hex')
+
+//     // 4. Address
+//     const { address } = bitcoin.payments.p2wpkh({
+//         pubkey: Buffer.from(child.publicKey)
+//     })
+
+//     return {
+//         chainType: 'bitcoin',
+//         address,
+//         privateKey,
+//         publicKey,
+//         derivationPath: path
+//     }
+// }
