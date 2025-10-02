@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { mapColors } from "../../utils/helper";
+import { getTokenIconUrl, mapColors } from "../../utils/helper";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddIcon from "@mui/icons-material/Add";
 import ImportTokenDialog from "../TokenImportModal";
@@ -20,6 +20,7 @@ import TokenDetailsModal from "./TokenDetailsModal";
 import SendTokenModal from "./SendTokenModal";
 import ReceiveTokenModal from "./ReceiveTokenModal";
 import ReceiveModal from "../Transction/Receive";
+import TokenAvatar from "./TokenAvatar";
 
 const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
     AccountTitle,
@@ -41,10 +42,6 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
         setImportOpen(true);
         handleMenuClose();
     };
-
-    console.log("selected account , ", Account, AccountTitle)
-    console.log("selected chain , ", selectedChain)
-
 
 
     useEffect(() => {
@@ -161,33 +158,51 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
 
                             {/* Token list */}
                             {selectedChain?.tokens?.length > 0 ? (
-                                selectedChain.tokens.map((t) => (
-                                    <Box
-                                        key={t.address || t.symbol}
-                                        display="flex"
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                        py={1.2}
-                                        borderBottom="1px solid #f4f4f4"
-                                        onClick={() => { setSelectedToken(t); setTokenModal(true) }}
-                                        sx={{ cursor: "pointer", "&:hover": { bgcolor: "#fafafa" } }}
-                                    >
-                                        <Box>
-                                            <Typography fontWeight="500">{t.name}</Typography>
-                                            {t?.address && (
-                                                <Typography fontSize="0.75rem" color="text.secondary">
-                                                    {t.address.slice(0, 6)}...{t.address.slice(-4)}
+                                selectedChain.tokens.map((t) => {
+                                    // --- NEW LOGIC: Calculate Icon URL and use TokenAvatar ---
+                                    const tokenIconUrl = getTokenIconUrl(
+                                        selectedChain?.chainId,
+                                        t.address
+                                    );
+                                    console.log("Token Icon URL:", tokenIconUrl);
+
+                                    return (
+                                        <Box
+                                            key={t.address || t.symbol}
+                                            display="flex"
+                                            justifyContent="space-between"
+                                            alignItems="center"
+                                            py={1.2}
+                                            borderBottom="1px solid #f4f4f4"
+                                            onClick={() => { setSelectedToken(t); setTokenModal(true) }}
+                                            sx={{ cursor: "pointer", "&:hover": { bgcolor: "#fafafa" } }}
+                                        >
+                                            <Box display="flex" alignItems="center">
+                                                {/* USE THE NEW TokenAvatar component here */}
+                                                <TokenAvatar
+                                                    iconUrl={tokenIconUrl}
+                                                    symbol={t.symbol}
+                                                    size={30} // Consistent size for the list item
+                                                />
+
+                                                <Box>
+                                                    <Typography fontWeight="500">{t.name}</Typography>
+                                                    {t?.address && (
+                                                        <Typography fontSize="0.75rem" color="text.secondary">
+                                                            {t.address.slice(0, 6)}...{t.address.slice(-4)}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            </Box>
+                                            <Box textAlign="right">
+                                                <Typography fontWeight="500">{t.balance}</Typography>
+                                                <Typography fontSize="0.8rem" color="text.secondary">
+                                                    {t.symbol}
                                                 </Typography>
-                                            )}
+                                            </Box>
                                         </Box>
-                                        <Box textAlign="right">
-                                            <Typography fontWeight="500">{t.balance}</Typography>
-                                            <Typography fontSize="0.8rem" color="text.secondary">
-                                                {t.symbol}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <Typography color="text.secondary" py={2} textAlign="center">
                                     No tokens found

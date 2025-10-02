@@ -7,6 +7,7 @@ import {
     IconButton
 } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
+import * as bip39 from "bip39";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -30,7 +31,7 @@ import { findAccountByAddress, findAccountNameOrIndex, mapColors } from "../util
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
-import { encryptMnemonic } from "../utils/cryptoUtils";
+import { decryptMnemonic, encryptMnemonic } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 
 
@@ -95,15 +96,38 @@ const WalletDashboard = ({
         try {
             const currentWallets = [...wallets];
 
-            // derive first account
-            const firstAccount = await generateWalletFromMnemonic(mnemonicFromUser, 0);
+            // normalize user input (trim spaces, lowercase)
+            const cleanedMnemonic = mnemonicFromUser.trim().toLowerCase();
 
-            // check duplicates
-            // check duplicates (normalize for case-insensitive match)
-            // check duplicates by mnemonic
-            const alreadyExists = currentWallets.some(
-                (w) => w.mnemonic && w.mnemonic.trim().toLowerCase() === mnemonicFromUser.trim().toLowerCase()
-            );
+            // validate mnemonic before anything
+            if (!bip39.validateMnemonic(cleanedMnemonic)) {
+                alert("Invalid recovery phrase. Please try again.");
+                return;
+            }
+
+            // convert to entropy (canonical form)
+            const newEntropy = bip39.mnemonicToEntropy(cleanedMnemonic);
+
+            // get session password (used for decrypting existing mnemonics)
+            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+            if (!sessionPassword) {
+                throw new Error("Session password missing.");
+            }
+            const decoded = atob(sessionPassword);
+
+            // check duplicates (by entropy)
+            const alreadyExists = currentWallets.some((w) => {
+                if (!w.mnemonic) return false;
+                try {
+                    const decrypted = decryptMnemonic(w.mnemonic, decoded);
+                    const storedEntropy = bip39.mnemonicToEntropy(
+                        decrypted.trim().toLowerCase()
+                    );
+                    return storedEntropy === newEntropy;
+                } catch {
+                    return false;
+                }
+            });
 
             if (alreadyExists) {
                 alert("This recovery phrase is already imported.");
@@ -112,22 +136,23 @@ const WalletDashboard = ({
                 return;
             }
 
-            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
-            const decoded = atob(sessionPassword);
-            const encryptedMenmonic = encryptMnemonic(mnemonicFromUser, decoded);
+            // derive first account
+            const firstAccount = await generateWalletFromMnemonic(cleanedMnemonic, 0);
 
-            // add new wallet with mnemonic stored
+            // encrypt mnemonic for storage
+            const encryptedMnemonic = encryptMnemonic(cleanedMnemonic, decoded);
+
+            // normalize account and update state
             const normalized = normalizeWalletObject(firstAccount, 0);
             const newWalletIndex = currentWallets.length;
             const updatedWallets = [
                 ...currentWallets,
                 {
                     walletType: "imported_seed",
-                    mnemonic: encryptedMenmonic,
+                    mnemonic: encryptedMnemonic,
                     accounts: [normalized],
-                }
+                },
             ];
-
 
             setWallets(updatedWallets);
             setSelectedWalletIndex(newWalletIndex);
@@ -136,11 +161,15 @@ const WalletDashboard = ({
             persistWalletState(updatedWallets, newWalletIndex, 0);
             setImportModalOpen(false);
             setStep("main");
+
+            // clear sensitive data
+            mnemonicFromUser = null;
         } catch (err) {
-            console.error("Invalid mnemonic:", err);
-            alert("Invalid recovery phrase. Please try again.");
+            console.error("❌ handleImportMnemonic error:", err);
+            alert(err.message || "Something went wrong while importing.");
         }
     };
+
 
 
     const handleImportPrivateKey = async (privateKey) => {

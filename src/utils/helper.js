@@ -93,3 +93,25 @@ export function bgRequest(message) {
         chrome.runtime.sendMessage(message, (res) => resolve(res));
     });
 }
+
+// Function to generate the icon URL using the Trust Wallet Assets standard.
+// This requires the token's contract address.
+const chainIdToTrustWalletName = (chainId) => {
+    switch (Number(chainId)) {
+        case 1: return "ethereum";
+        case 56: return "smartchain"; // BNB Smart Chain Mainnet
+        case 97: return "smartchain"; // BNB Testnet (logos usually missing though)
+        case 137: return "polygon";
+        case 42161: return "arbitrum";
+        default: return "ethereum"; // fallback
+    }
+};
+
+export const getTokenIconUrl = (chainId, contractAddress) => {
+    if (!contractAddress || !chainId) return null;
+
+    const chainName = chainIdToTrustWalletName(chainId);
+    const normalizedAddress = contractAddress;
+
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chainName}/assets/${normalizedAddress}/logo.png`;
+};
