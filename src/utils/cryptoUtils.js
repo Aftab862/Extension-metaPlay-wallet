@@ -26,3 +26,14 @@ export function encryptPk(privateKey, secretKey) {
     const ciphertext = CryptoJS.AES.encrypt(privateKey, secretKey).toString();
     return ciphertext;
 }
+
+export function decryptPk(encrypted, key) {
+
+    try {
+        const bytes = CryptoJS.AES.decrypt(encrypted, key);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        return decrypted || null;
+    } catch {
+        return null;
+    }
+}

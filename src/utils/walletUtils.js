@@ -9,6 +9,7 @@ import * as bitcoin from 'bitcoinjs-lib'
 import * as ecc from '@bitcoinerlab/secp256k1'
 import { TronWeb } from "tronweb";
 import { encryptMnemonic, encryptPk } from "./cryptoUtils";
+import { PK_PUBLICKEY } from "./keys";
 window.Buffer = Buffer
 const bip32 = BIP32Factory(ecc)
 const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io' })
@@ -115,7 +116,7 @@ export function normalizeWalletObject(walletObj, index) {
         chains: Object.entries(walletObj).map(([type, data]) => ({
             type,
             address: data.address,
-            privateKey: encryptPk(data.privateKey, "1122"),
+            privateKey: encryptPk(data.privateKey, PK_PUBLICKEY),
         })),
     };
 }
