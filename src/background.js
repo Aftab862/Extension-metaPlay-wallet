@@ -23,52 +23,6 @@ async function updateTransactionStatus(txHash, status) {
     await db.transactions.update(txHash, { status });
 }
 
-async function getTxHistoryFromExplorer(explorerApiUrl, address, chainId) {
-    // 1. Clean the URL and set up the base for the Etherscan-compatible API
-    const baseUrl = explorerApiUrl.replace(/\/+$/, '');
-
-    // 2. Construct the standard API endpoint for account transaction list (txlist)
-    // NOTE: We are intentionally omitting the '&apikey=...' parameter here as requested.
-    const apiUrl = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc`;
-
-    try {
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-            // Check for non-200 HTTP response codes
-            throw new Error(`Explorer HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Block explorers use different status fields; Etherscan-style uses 'status: 1'
-        if (data.status === '1' && Array.isArray(data.result)) {
-            // Map the explorer data to your application's transaction format
-            return data.result.map(tx => ({
-                hash: tx.hash,
-                from: tx.from,
-                to: tx.to,
-                value: tx.value,             // Usually in Wei/smallest unit
-                timestamp: tx.timeStamp,     // Must be present for sorting/display
-                blockNumber: tx.blockNumber,
-                chainId: chainId,
-                // Add any other necessary fields (gasUsed, contractAddress, etc.)
-            }));
-        } else if (data.message === 'No transactions found' || (Array.isArray(data.result) && data.result.length === 0)) {
-            // Successfully retrieved, but the list is empty
-            return [];
-        } else {
-            // Handle specific API errors reported in the JSON body (e.g., rate limits)
-            const errorMessage = data.message || data.error?.message || "Unknown error from explorer API";
-            throw new Error(`Explorer API Error: ${errorMessage}`);
-        }
-    } catch (err) {
-        console.warn(`⚠️ External fetch failed (will use local DB if available): ${err.message}`);
-        // Re-throw the error so it can be caught by the main try/catch block
-        throw err;
-    }
-}
-
 // ----------------------
 // ✅ Chrome Listener
 // ----------------------
@@ -219,51 +173,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // --- Modified Request Handler ---
     if (request.type === "GET_TX_HISTORY") {
         (async () => {
-            // Destructure the new explorerApiUrl
-            const { chainId, address, rpcUrl, explorerApiUrl } = request.payload || {};
-
-            let txHistory = [];
-
+            const { chainId, address } = request.payload || {};
             try {
-                // 1. PRIORITIZE EXTERNAL FETCH if the URL and address are provided
-                if (explorerApiUrl && address && chainId) {
-                    console.log(`Fetching history for ${address} on chain ${chainId} from ${explorerApiUrl}`);
+                const all = await db.transactions.toArray();
+                console.log("all database transactions:", all);
 
-                    // Attempt to fetch from the external explorer
-                    txHistory = await getTxHistoryFromExplorer(explorerApiUrl, address, chainId);
+                // filter only what matters
+                const txHistory = all.filter((t) => {
+                    if (chainId && t.chainId !== chainId) return false;
+                    if (address) {
+                        const addr = address.toLowerCase();
+                        return (
+                            (t.from && t.from.toLowerCase() === addr) ||
+                            (t.to && t.to.toLowerCase() === addr)
+                        );
+                    }
+                    return true;
+                });
 
-                } else {
-                    // 2. FALLBACK to existing local database logic
-                    console.log("Falling back to local database query (Missing explorerApiUrl, address, or chainId).");
-
-                    let all = await db.transactions.toArray();
-                    console.log("all database tranactions :", all)
-
-                    // Existing filtering logic
-                    txHistory = all.filter((t) => {
-                        if (chainId && t.chainId !== chainId) return false;
-                        if (address) {
-                            const addr = address.toLowerCase();
-                            return (
-                                (t.from && t.from.toLowerCase() === addr) ||
-                                (t.to && t.to.toLowerCase() === addr)
-                            );
-                        }
-                        return true;
-                    });
-                }
-
-                // Send the final result
                 sendResponse({ success: true, tx: txHistory });
-
             } catch (err) {
-                // This catch block handles both external fetch failures AND local DB errors
                 console.error("❌ GET_TX_HISTORY error:", err);
                 sendResponse({ success: false, error: err.message });
             }
         })();
         return true;
     }
+
 
     // ------------------------
     // ESTIMATE GAS for ERC20
