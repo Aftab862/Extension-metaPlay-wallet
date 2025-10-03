@@ -16,9 +16,9 @@ import {
     CircularProgress,
 } from "@mui/material";
 import { Close, ContentCopy } from "@mui/icons-material";
-import { SESSION_PASSWORD_KEY } from "../../utils/keys";
+import { PK_PUBLICKEY, SESSION_PASSWORD_KEY } from "../../utils/keys";
 import { findAccountDetails } from "../../utils/helper";
-import { decryptMnemonic } from "../../utils/cryptoUtils";
+import { decryptMnemonic, decryptPk } from "../../utils/cryptoUtils";
 import Logo from '../../../public/icons/Logo.svg';
 
 
@@ -78,7 +78,10 @@ export default function RevealSecretModal({
     }
 
     const getPrivateKey = () => {
-        return currentAccount?.chains?.[0]?.privateKey ?? null;
+
+        const pk = currentAccount?.chains?.[0]?.privateKey ?? null;
+        const decrypted = decryptPk(pk, PK_PUBLICKEY);
+        return decrypted ?? null;
     };
 
     const getSecretPhrases = (password) => {

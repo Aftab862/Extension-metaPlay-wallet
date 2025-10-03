@@ -19,6 +19,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloseIcon from "@mui/icons-material/Close";
 import { ethers } from "ethers";
 import { bgRequest } from "../../utils/helper";
+import { decryptPk } from "../../utils/cryptoUtils";
+import { PK_PUBLICKEY } from "../../utils/keys";
 
 
 const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account, chainName }) => {
@@ -128,16 +130,15 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
         try {
             setLoading(true);
 
-
-
-
+            const pk = Account?.account?.chains[0]?.privateKey ?? null;
+            const decrypted = decryptPk(pk, PK_PUBLICKEY);
             const res = await bgRequest({
                 type: "SEND_TOKEN_TX",
                 payload: {
                     to: toAddress,
                     amount,
                     rpcUrl,
-                    privateKey: Account?.account?.chains[0]?.privateKey,
+                    privateKey: decrypted,
                     chainId,
                     tokenAddress: token.address,
                     decimals: token.decimals,
