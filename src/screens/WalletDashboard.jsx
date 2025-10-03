@@ -30,8 +30,8 @@ const Transction = lazy(() => import("../components/Transction"));
 import { findAccountByAddress, findAccountNameOrIndex, mapColors } from "../utils/helper";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
-import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
-import { decryptMnemonic, encryptMnemonic } from "../utils/cryptoUtils";
+import { CHAIN_ID, PK_PUBLICKEY, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
+import { decryptMnemonic, encryptMnemonic, encryptPk } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 
 
@@ -200,10 +200,11 @@ const WalletDashboard = ({
             }
 
             // ✅ build the object in the same structure that normalizeWalletObject expects
+            const encryptedPk = encryptPk(normalizedKey, PK_PUBLICKEY);
             const walletObj = {
                 evm: {
                     address: wallet.address,
-                    privateKey: normalizedKey,
+                    privateKey: encryptedPk,
                 },
             };
 
