@@ -6,9 +6,26 @@ import { ethers } from "ethers";
 // ✅ Setup IndexedDB with Dexie
 // ----------------------
 const db = new Dexie("MetaPlayWalletDB");
-db.version(1).stores({
-    transactions: "&txHash, chainId, from, to, status, timestamp, type, tokenAddress"
+
+// 🚨 Bump version number when changing schema
+db.version(2).stores({
+    transactions: `
+        &txHash, 
+        chainId, 
+        from, 
+        to, 
+        status, 
+        timestamp, 
+        type, 
+        tokenAddress,
+        nonce,
+        gasLimit,
+        gasPrice,
+        gasUsed,
+        effectiveGasPrice
+    `
 });
+
 
 
 const API_KEY = "6RW4_bP3AEOZffLygkqmRTM58lp01gz9"
@@ -95,6 +112,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // ------------------------
     // SEND TX
     // ------------------------
+    // ------------------------
     if (request.type === "SEND_TX") {
         (async () => {
             try {
@@ -111,12 +129,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const txResponse = await wallet.sendTransaction(tx);
                 console.log("🚀 Transaction sent:", txResponse.hash);
 
-                // ✅ Create a notification ID to reuse
-                const notificationId = `tx-${txResponse.hash}`;
-
-
-
-                // Save pending tx in DB
+                // Save *pending* tx in DB
                 await saveTransaction({
                     txHash: txResponse.hash,
                     from: wallet.address,
@@ -127,14 +140,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     status: "pending",
                     chainId,
                     timestamp: Date.now(),
-                });
 
+                    // extra fields
+                    nonce: txResponse.nonce,
+                    gasLimit: txResponse.gasLimit?.toString(),
+                    gasPrice: txResponse.gasPrice?.toString(),
+                    total: ethers.formatEther(
+                        txResponse.value + (txResponse.gasLimit * (txResponse.gasPrice || 0n))
+                    ),
+                });
 
                 // Wait for confirmation
                 provider.waitForTransaction(txResponse.hash).then(async (receipt) => {
                     const finalStatus = receipt.status === 1 ? "confirmed" : "failed";
 
-                    await updateTransactionStatus(txResponse.hash, finalStatus);
+                    await updateTransactionStatus(txResponse.hash, finalStatus, {
+                        gasUsed: receipt.gasUsed?.toString(),
+                        effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+                    });
 
                     chrome.notifications.create(`tx-${txResponse.hash}`, {
                         type: "basic",
@@ -266,11 +289,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const abi = ["function transfer(address to, uint256 value) returns (bool)"];
                 const contract = new ethers.Contract(tokenAddress, abi, wallet);
 
-                // Build tx
+                // Build tx overrides
                 const txOverrides = {};
                 if (gasPrice) txOverrides.gasPrice = ethers.parseUnits(gasPrice, "gwei");
                 if (gasLimit) txOverrides.gasLimit = BigInt(gasLimit);
 
+                // Send ERC20 transfer
                 const txResponse = await contract.transfer(
                     to,
                     ethers.parseUnits(amount, decimals),
@@ -290,13 +314,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     status: "pending",
                     chainId,
                     timestamp: Date.now(),
+
+                    // Extra fields for modal
+                    nonce: txResponse.nonce,
+                    gasLimit: txResponse.gasLimit?.toString(),
+                    gasPrice: txResponse.gasPrice?.toString(),
                 });
 
                 // Wait for confirmation
                 provider.waitForTransaction(txResponse.hash).then(async (receipt) => {
                     const finalStatus = receipt.status === 1 ? "confirmed" : "failed";
 
-                    await updateTransactionStatus(txResponse.hash, finalStatus);
+                    await updateTransactionStatus(txResponse.hash, finalStatus, {
+                        gasUsed: receipt.gasUsed?.toString(),
+                        effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+                        // we could calculate actual fee cost here
+                    });
 
                     chrome.notifications.create(`tx-${txResponse.hash}`, {
                         type: "basic",
@@ -324,6 +357,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         })();
         return true;
     }
+
 
 
     return false; // no handler matched
