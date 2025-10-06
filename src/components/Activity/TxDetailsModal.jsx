@@ -10,7 +10,7 @@ import {
     Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-const TxDetailsDialog = ({ open, onClose, tx, chainSymbol = "DXB" }) => {
+const TxDetailsDialog = ({ open, onClose, tx }) => {
     if (!tx) return null;
 
     const statusColor =
@@ -125,7 +125,7 @@ const TxDetailsDialog = ({ open, onClose, tx, chainSymbol = "DXB" }) => {
 
                 {/* Tx details */}
                 <DetailRow label="Nonce" value={tx.nonce} />
-                <DetailRow label="Amount" value={`${tx.amount} ${chainSymbol}`} />
+                <DetailRow label="Amount" value={`${tx.amount} ${tx?.symbol}`} />
                 <DetailRow label="Gas Limit" value={tx.gasLimit} />
                 <DetailRow label="Gas Used" value={tx.gasUsed} />
                 <DetailRow label="Gas Price" value={tx.gasPrice} />
@@ -133,7 +133,7 @@ const TxDetailsDialog = ({ open, onClose, tx, chainSymbol = "DXB" }) => {
                     label="Total"
                     value={`${Number(tx.amount) +
                         (Number(tx.gasUsed) * Number(tx.gasPrice) || 0)
-                        } ${chainSymbol}`}
+                        } ${tx.symbol}`}
                 />
             </DialogContent>
         </Dialog>

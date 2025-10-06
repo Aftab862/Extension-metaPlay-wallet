@@ -234,6 +234,8 @@ const SendModal = ({
                     privateKey: decrypted,
                     gasPrice: customGasPrice || undefined, // ✅ pass override
                     gasLimit: customGasLimit || undefined, // ✅ pass override
+                    symbol: chain?.nativeCurrency?.symbol,
+                    name: chain?.nativeCurrency?.name
                 },
             });
 

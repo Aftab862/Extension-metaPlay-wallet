@@ -16,7 +16,7 @@ import DoneIcon from "@mui/icons-material/Done";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import ErrorIcon from "@mui/icons-material/Error";
 import React, { useEffect } from "react";
-import { mapColors } from "../../utils/helper";
+import { groupByDate, mapColors } from "../../utils/helper";
 import { useTransactionHistory } from "../Hooks/useTransactionHistory";
 import { loadFromLocalStorage } from "../../utils/storage";
 import { CHAIN_ID } from "../../utils/keys";
@@ -24,27 +24,10 @@ import TxDetailsModal from "./TxDetailsModal";
 
 // --- GROUPING + META HELPERS ---
 
-const groupByDate = (history = []) => {
-    const grouped = history.reduce((groups, tx) => {
-        const date = new Date(tx.timestamp).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        });
-        if (!groups[date]) groups[date] = [];
-        groups[date].push(tx);
-        return groups;
-    }, {});
 
-    Object.keys(grouped).forEach((date) => {
-        grouped[date].sort((a, b) => b.timestamp - a.timestamp);
-    });
-
-    return grouped;
-};
 
 const getTxMeta = (tx, nativeSymbol, userWallet) => {
-    const symbol = tx.type === "token" ? "Token" : nativeSymbol;
+    const symbol = tx?.symbol
 
     if (tx.from?.toLowerCase() === userWallet?.toLowerCase()) {
         return {
@@ -242,7 +225,7 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                 open={open}
                 onClose={() => setOpen(false)}
                 tx={transactionDetails}
-                chainSymbol="DXB"
+
             />}
         </>
 

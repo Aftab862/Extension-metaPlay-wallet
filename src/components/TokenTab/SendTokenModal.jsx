@@ -110,6 +110,8 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
         }
     }, [gasInfo, customGasPrice, customGasLimit]);
 
+    console.log("token details:", token);
+
     // 🟢 Handle send
     const handleSend = async () => {
         setError(null);
@@ -144,6 +146,8 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     decimals: token.decimals,
                     gasPrice: customGasPrice,
                     gasLimit: customGasLimit,
+                    tokenSymbol: token.symbol,
+                    tokenName: token.name
                 },
             });
 

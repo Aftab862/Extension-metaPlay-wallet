@@ -115,3 +115,32 @@ export const getTokenIconUrl = (chainId, contractAddress) => {
 
     return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chainName}/assets/${normalizedAddress}/logo.png`;
 };
+
+
+export const groupByDate = (history = []) => {
+    const grouped = history.reduce((groups, tx) => {
+        const date = new Date(tx.timestamp).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(tx);
+        return groups;
+    }, {});
+
+    // Sort each date's transactions (newest first)
+    Object.keys(grouped).forEach((date) => {
+        grouped[date].sort((a, b) => b.timestamp - a.timestamp);
+    });
+
+    // 🔥 Sort the dates themselves (latest date first)
+    const sortedGrouped = Object.fromEntries(
+        Object.entries(grouped).sort(
+            ([dateA], [dateB]) =>
+                new Date(dateB) - new Date(dateA) // newer date first
+        )
+    );
+
+    return sortedGrouped;
+};

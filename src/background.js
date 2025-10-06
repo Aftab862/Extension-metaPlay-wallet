@@ -19,6 +19,8 @@ db.version(2).stores({
         type, 
         tokenAddress,
         nonce,
+        symbol,
+        name,
         gasLimit,
         gasPrice,
         gasUsed,
@@ -35,10 +37,14 @@ async function saveTransaction(tx) {
     await db.transactions.put(tx);
 }
 
-// Utility: Update transaction status
-async function updateTransactionStatus(txHash, status) {
-    await db.transactions.update(txHash, { status });
+
+async function updateTransactionStatus(txHash, status, extra = {}) {
+    return db.transactions.update(txHash, {
+        status,
+        ...extra,  // merge extra fields like gasUsed, actualFee
+    });
 }
+
 
 // ----------------------
 // ✅ Chrome Listener
@@ -116,7 +122,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "SEND_TX") {
         (async () => {
             try {
-                const { to, amount, rpcUrl, privateKey, chainId } = request.payload;
+                const { to, amount, rpcUrl, privateKey, chainId, name, symbol } = request.payload;
 
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const wallet = new ethers.Wallet(privateKey, provider);
@@ -140,11 +146,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     status: "pending",
                     chainId,
                     timestamp: Date.now(),
+                    name,
+                    symbol,
 
                     // extra fields
                     nonce: txResponse.nonce,
                     gasLimit: txResponse.gasLimit?.toString(),
-                    gasPrice: txResponse.gasPrice?.toString(),
+                    gasPrice: txResponse.gasPrice
+                        ? ethers.formatUnits(txResponse.gasPrice, "gwei") // ✅ convert before saving
+                        : null,
                     total: ethers.formatEther(
                         txResponse.value + (txResponse.gasLimit * (txResponse.gasPrice || 0n))
                     ),
@@ -156,8 +166,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     await updateTransactionStatus(txResponse.hash, finalStatus, {
                         gasUsed: receipt.gasUsed?.toString(),
-                        effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+                        effectiveGasPrice: receipt.effectiveGasPrice
+                            ? ethers.formatUnits(receipt.effectiveGasPrice, "gwei") // ✅
+                            : null,
+                        // you can also calculate actual fee here
+                        actualFee: (receipt.gasUsed && receipt.effectiveGasPrice)
+                            ? ethers.formatUnits(receipt.gasUsed * receipt.effectiveGasPrice, "ether")
+                            : null,
                     });
+
 
                     chrome.notifications.create(`tx-${txResponse.hash}`, {
                         type: "basic",
@@ -281,7 +298,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "SEND_TOKEN_TX") {
         (async () => {
             try {
-                const { to, amount, rpcUrl, privateKey, chainId, tokenAddress, decimals, gasPrice, gasLimit } = request.payload;
+                const { to, amount, rpcUrl, privateKey, chainId, tokenAddress, decimals, gasPrice, gasLimit, tokenName, tokenSymbol } = request.payload;
 
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const wallet = new ethers.Wallet(privateKey, provider);
@@ -301,7 +318,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     txOverrides
                 );
 
-                console.log("🚀 ERC20 Transaction sent:", txResponse.hash);
+                console.log("🚀 ERC20 Transaction sent:", txResponse);
 
                 // ✅ Save pending token tx in DB
                 await saveTransaction({
@@ -314,11 +331,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     status: "pending",
                     chainId,
                     timestamp: Date.now(),
+                    name: tokenName,
+                    symbol: tokenSymbol,
 
                     // Extra fields for modal
                     nonce: txResponse.nonce,
                     gasLimit: txResponse.gasLimit?.toString(),
-                    gasPrice: txResponse.gasPrice?.toString(),
+                    gasPrice: txResponse.gasPrice
+                        ? ethers.formatUnits(txResponse.gasPrice, "gwei") // ✅ convert before saving
+                        : null,
                 });
 
                 // Wait for confirmation
@@ -327,9 +348,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     await updateTransactionStatus(txResponse.hash, finalStatus, {
                         gasUsed: receipt.gasUsed?.toString(),
-                        effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
-                        // we could calculate actual fee cost here
+                        effectiveGasPrice: receipt.effectiveGasPrice
+                            ? ethers.formatUnits(receipt.effectiveGasPrice, "gwei") // ✅
+                            : null,
+                        // you can also calculate actual fee here
+                        actualFee: (receipt.gasUsed && receipt.effectiveGasPrice)
+                            ? ethers.formatUnits(receipt.gasUsed * receipt.effectiveGasPrice, "ether")
+                            : null,
                     });
+
 
                     chrome.notifications.create(`tx-${txResponse.hash}`, {
                         type: "basic",
