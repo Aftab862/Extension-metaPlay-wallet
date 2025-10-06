@@ -201,7 +201,7 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                                                 }
                                                 secondary={
                                                     <Box display="flex" alignItems="center" gap={0.5}>
-                                                        {status.icon}
+                                                        {/* {status.icon} */}
                                                         <Typography
                                                             variant="body2"
                                                             sx={{ color: status.color }}

@@ -57,7 +57,7 @@ const TxDetailsDialog = ({ open, onClose, tx }) => {
                 </IconButton>
             </DialogTitle>
 
-            <DialogContent>
+            <DialogContent sx={{ padding: 1.5 }}>
                 {/* Status */}
                 <Box my={2}>
                     <Box display="flex" justifyContent="space-between">
@@ -150,7 +150,7 @@ const DetailRow = ({ label, value }) => (
         <Typography color="grey.600" variant="body2">
             {label}
         </Typography>
-        <Typography fontWeight="bold" variant="body2">
+        <Typography fontWeight="bold" variant="body2" sx={{ fontSize: " 0.8rem" }}>
             {value}
         </Typography>
     </Box>
