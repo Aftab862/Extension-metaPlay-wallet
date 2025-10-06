@@ -50,7 +50,7 @@ async function updateTransactionStatus(txHash, status, extra = {}) {
 // ✅ Chrome Listener
 // ----------------------
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("📩 Message received:", request.type, request.payload);
+    // console.log("📩 Message received:", request.type, request.payload);
 
     // ------------------------
     // GET BALANCE
@@ -64,7 +64,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const balanceBN = await provider.getBalance(address);
                 const balance = ethers.formatEther(balanceBN);
 
-                console.log("💰 Balance:", balance, "ETH");
+                // console.log("💰 Balance:", balance, "ETH");
                 sendResponse({ success: true, balance });
             } catch (err) {
                 console.error("❌ GET_BALANCE error:", err);
@@ -95,11 +95,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const feeBN = feeData.gasPrice * gasLimit;
                 const estimatedFee = ethers.formatEther(feeBN);
 
-                console.log("⛽ Gas estimated:", {
-                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
-                    gasLimit: gasLimit.toString(),
-                    estimatedFee,
-                });
+                // console.log("⛽ Gas estimated:", {
+                //     gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
+                //     gasLimit: gasLimit.toString(),
+                //     estimatedFee,
+                // });
 
                 sendResponse({
                     success: true,
@@ -133,7 +133,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 };
 
                 const txResponse = await wallet.sendTransaction(tx);
-                console.log("🚀 Transaction sent:", txResponse.hash);
+                // console.log("🚀 Transaction sent:", txResponse.hash);
 
                 // Save *pending* tx in DB
                 await saveTransaction({
@@ -216,7 +216,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const { chainId, address } = request.payload || {};
             try {
                 const all = await db.transactions.toArray();
-                console.log("all database transactions:", all);
+                // console.log("all database transactions:", all);
 
                 // filter only what matters
                 const txHistory = all.filter((t) => {
@@ -272,11 +272,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const feeBN = feeData.gasPrice * gasLimit;
                 const estimatedFee = ethers.formatEther(feeBN);
 
-                console.log("⛽ ERC20 Gas estimated:", {
-                    gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
-                    gasLimit: gasLimit.toString(),
-                    estimatedFee,
-                });
+                // console.log("⛽ ERC20 Gas estimated:", {
+                //     gasPrice: ethers.formatUnits(feeData.gasPrice, "gwei"),
+                //     gasLimit: gasLimit.toString(),
+                //     estimatedFee,
+                // });
 
                 sendResponse({
                     success: true,
@@ -318,7 +318,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     txOverrides
                 );
 
-                console.log("🚀 ERC20 Transaction sent:", txResponse);
+                // console.log("🚀 ERC20 Transaction sent:", txResponse);
+
 
                 // ✅ Save pending token tx in DB
                 await saveTransaction({

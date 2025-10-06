@@ -164,7 +164,6 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
                                         selectedChain?.chainId,
                                         t.address
                                     );
-                                    console.log("Token Icon URL:", tokenIconUrl);
 
                                     return (
                                         <Box

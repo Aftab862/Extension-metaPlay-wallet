@@ -98,7 +98,6 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
         chainId,
         userWalletAddress
     );
-    console.log("Transaction Details:", transactionDetails);
 
     const grouped = groupByDate(history || []);
 
