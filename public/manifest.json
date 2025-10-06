@@ -22,7 +22,8 @@
     {
       "resources": [
         "icons/Logo.svg",
-        "icons/hand.gif"
+        "icons/hand.gif",
+        "icons/vrcn.png"
       ],
       "matches": [
         "<all_urls>"

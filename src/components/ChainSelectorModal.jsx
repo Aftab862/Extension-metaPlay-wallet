@@ -20,6 +20,7 @@ import {
 import { mapColors } from "../utils/helper";
 import { AddChainHandler } from "../utils/storage";
 import { Close } from "@mui/icons-material";
+import { chainIcons } from "../Assets/chainIconsUrls";
 
 export default function ChainSelectorModal({
     open,
@@ -129,7 +130,7 @@ export default function ChainSelectorModal({
                                         display: "flex",
                                         alignItems: "center",
                                         "&.Mui-selected": {
-                                            margin: "0 10px",
+
                                             backgroundColor: "primary.main",
                                             color: "white",
                                             "& .MuiListItemText-primary": {
@@ -150,7 +151,7 @@ export default function ChainSelectorModal({
 
                                 >
                                     <ListItemAvatar>
-                                        <Avatar
+                                        {/* <Avatar
                                             sx={{
                                                 bgcolor: mapColors(chain.nativeCurrency.name),
                                                 width: 36,
@@ -159,6 +160,24 @@ export default function ChainSelectorModal({
                                             }}
                                         >
                                             {chain.nativeCurrency.name.slice(0, 1)}
+                                        </Avatar> */}
+                                        {console.log("chain icon:", chainIcons(chain.nativeCurrency.symbol))}
+                                        <Avatar
+                                            src={chainIcons(chain.nativeCurrency.symbol)}
+                                            alt={chain.nativeCurrency?.name || chain.name}
+                                            imgProps={{ loading: "lazy" }}
+                                            variant="rounded"
+                                        // sx={{
+                                        //     width: 36,
+                                        //     height: 36,
+                                        //     bgcolor: chainIcons[chain.name]
+                                        //         ? "transparent"
+                                        //         : mapColors(chain.nativeCurrency?.name || chain.name),
+                                        //     fontSize: "12px",
+                                        // }}
+                                        >
+                                            {/* {!chainIcons[chain.name] &&
+                                                (chain.nativeCurrency?.symbol?.slice(0, 1) || "?")} */}
                                         </Avatar>
                                     </ListItemAvatar>
                                     <ListItemText primary={chain.name} secondary={chain.nativeCurrency.name} />
