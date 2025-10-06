@@ -1,6 +1,7 @@
 import { Avatar } from '@mui/material';
 import React, { useState } from 'react';
 // Assuming Avatar is imported from @mui/material
+import MPTLogo from '../../../public/icons/icon1.png'; // Ensure you have a default logo for MPT
 
 const TokenAvatar = ({ iconUrl, symbol, size = 30, ...props }) => {
     const [imgError, setImgError] = useState(false);
@@ -10,11 +11,28 @@ const TokenAvatar = ({ iconUrl, symbol, size = 30, ...props }) => {
         setImgError(false);
     }, [iconUrl]);
 
+
+    if (symbol?.toUpperCase() === "MPT") {
+        return (
+            <Avatar
+                src={MPTLogo}
+                alt={symbol}
+
+                variant="rounded"
+                sx={{ width: size, height: size, mr: 1, p: 0 }}
+                imgProps={{ style: { objectFit: "contain" } }}
+                {...props}
+            />
+        );
+    }
+
     if (iconUrl && !imgError) {
         return (
             <Avatar
                 src={iconUrl}
                 alt={symbol}
+                variant="rounded"
+
                 onError={() => setImgError(true)} // Crucial for fallback
                 sx={{ width: size, height: size, mr: 1, p: 0 }}
                 imgProps={{ style: { objectFit: 'contain' } }}
@@ -33,7 +51,10 @@ const TokenAvatar = ({ iconUrl, symbol, size = 30, ...props }) => {
                 bgcolor: 'primary.main', // Use a consistent default color here or mapColors if available
                 fontSize: size * 0.35,
             }}
+            variant="rounded"
+
             {...props}
+
         >
             {symbol?.slice(0, 2) || "?"}
         </Avatar>
