@@ -10,6 +10,7 @@ import {
     Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { ethers } from "ethers";
 const TxDetailsDialog = ({ open, onClose, tx }) => {
     if (!tx) return null;
 
@@ -49,7 +50,7 @@ const TxDetailsDialog = ({ open, onClose, tx }) => {
                 }}
             >
                 <Typography variant="h6" fontWeight="bold">
-                    Withdraw Reward
+                    Tx Details
                 </Typography>
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
@@ -66,7 +67,7 @@ const TxDetailsDialog = ({ open, onClose, tx }) => {
 
                         <Box
                             onClick={() =>
-                                window.open(`https://explorer.io/tx/${tx.txHash}`, "_blank")
+                                window.open(`${tx.explorer}/tx/${tx.txHash}`, "_blank")
                             }
                             sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
                         >
@@ -130,11 +131,15 @@ const TxDetailsDialog = ({ open, onClose, tx }) => {
                 <DetailRow label="Gas Used" value={tx.gasUsed} />
                 <DetailRow label="Gas Price" value={tx.gasPrice} />
                 <DetailRow
-                    label="Total"
-                    value={`${Number(tx.amount) +
-                        (Number(tx.gasUsed) * Number(tx.gasPrice) || 0)
-                        } ${tx.symbol}`}
+                    label="Total Fee"
+                    value={`${ethers.formatEther(
+                        BigInt(tx.gasUsed || 0) *
+                        ethers.parseUnits(tx.gasPrice?.toString() || "0", "gwei")
+                    )} ${tx.name}`}
                 />
+
+
+
             </DialogContent>
         </Dialog>
     );

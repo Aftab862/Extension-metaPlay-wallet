@@ -230,6 +230,7 @@ const SendModal = ({
                     to: trimmedTo,
                     amount: trimmedAmount,
                     rpcUrl: chain.rpcUrl,
+                    explorer: chain.explorerUrl,
                     chainId,
                     privateKey: decrypted,
                     gasPrice: customGasPrice || undefined, // ✅ pass override
@@ -251,6 +252,7 @@ const SendModal = ({
             setError(err.message || "Unexpected error");
         }
     }, [toAddress, amount, gasFee, balance, chain, fromAddress, customGasPrice, customGasLimit]);
+
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

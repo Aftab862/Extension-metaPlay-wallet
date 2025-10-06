@@ -250,6 +250,7 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
                 token={selectedToken}
                 userWallet={userWalletAddress}
                 rpcUrl={selectedChain?.rpcUrl}
+                explorer={selectedChain?.explorerUrl}
                 chainId={selectedChain?.chainId}
                 chainName={selectedChain?.nativeCurrency?.name}
                 AccountTitle={AccountTitle}

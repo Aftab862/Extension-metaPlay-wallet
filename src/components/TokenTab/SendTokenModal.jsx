@@ -23,7 +23,7 @@ import { decryptPk } from "../../utils/cryptoUtils";
 import { PK_PUBLICKEY } from "../../utils/keys";
 
 
-const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account, chainName }) => {
+const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Account, chainName, explorer }) => {
     const [toAddress, setToAddress] = useState("");
     const [amount, setAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -140,6 +140,7 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     to: toAddress,
                     amount,
                     rpcUrl,
+                    explorer: explorer,
                     privateKey: decrypted,
                     chainId,
                     tokenAddress: token.address,
@@ -147,7 +148,7 @@ const SendTokenModal = ({ open, onClose, token, rpcUrl, userWallet, chainId, Acc
                     gasPrice: customGasPrice,
                     gasLimit: customGasLimit,
                     tokenSymbol: token.symbol,
-                    tokenName: token.name
+                    tokenName: chainName
                 },
             });
 

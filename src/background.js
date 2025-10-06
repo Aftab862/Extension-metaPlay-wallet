@@ -20,6 +20,7 @@ db.version(2).stores({
         tokenAddress,
         nonce,
         symbol,
+        explorer,
         name,
         gasLimit,
         gasPrice,
@@ -122,7 +123,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "SEND_TX") {
         (async () => {
             try {
-                const { to, amount, rpcUrl, privateKey, chainId, name, symbol } = request.payload;
+                const { to, amount, rpcUrl, privateKey, chainId, name, symbol, explorer } = request.payload;
 
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const wallet = new ethers.Wallet(privateKey, provider);
@@ -148,6 +149,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     timestamp: Date.now(),
                     name,
                     symbol,
+                    explorer,
 
                     // extra fields
                     nonce: txResponse.nonce,
@@ -175,14 +177,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             : null,
                     });
 
-
-                    chrome.notifications.create(`tx-${txResponse.hash}`, {
+                    const notificationId = `tx-${txResponse.hash}`;
+                    chrome.notifications.create(notificationId, {
                         type: "basic",
                         iconUrl: "icons/icon1.png",
                         title: `Transaction ${finalStatus === "confirmed" ? "Confirmed ✅" : "Failed ❌"}`,
-                        message: `Sent ${amount} DXB to ${to}\nTx: ${txResponse.hash}`,
+                        message: `Sent ${amount} ${symbol} to ${to}\nClick to view on explorer.`,
                         priority: 2,
                     });
+
+                    // 👇 Add this block
+                    chrome.notifications.onClicked.addListener((clickedId) => {
+                        if (clickedId === notificationId && explorer) {
+                            chrome.tabs.create({ url: `${explorer}/tx/${txResponse.hash}` });
+                        }
+                    });
+
                 });
 
                 sendResponse({ success: true, txHash: txResponse.hash });
@@ -298,7 +308,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "SEND_TOKEN_TX") {
         (async () => {
             try {
-                const { to, amount, rpcUrl, privateKey, chainId, tokenAddress, decimals, gasPrice, gasLimit, tokenName, tokenSymbol } = request.payload;
+                const { to, amount, rpcUrl, privateKey, chainId, tokenAddress, decimals, gasPrice, gasLimit, explorer, tokenName, tokenSymbol } = request.payload;
 
                 const provider = new ethers.JsonRpcProvider(rpcUrl);
                 const wallet = new ethers.Wallet(privateKey, provider);
@@ -334,6 +344,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     timestamp: Date.now(),
                     name: tokenName,
                     symbol: tokenSymbol,
+                    explorer,
 
                     // Extra fields for modal
                     nonce: txResponse.nonce,
@@ -358,14 +369,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             : null,
                     });
 
-
-                    chrome.notifications.create(`tx-${txResponse.hash}`, {
+                    const notificationId = `tx-${txResponse.hash}`;
+                    chrome.notifications.create(notificationId, {
                         type: "basic",
                         iconUrl: "icons/icon1.png",
                         title: `Token Transfer ${finalStatus === "confirmed" ? "Confirmed ✅" : "Failed ❌"}`,
-                        message: `Sent ${amount} tokens to ${to}\nTx: ${txResponse.hash}`,
+                        message: `Sent ${amount} ${tokenSymbol} to ${to}\nClick to view on explorer.`,
                         priority: 2,
                     });
+
+                    // 👇 Add this block
+                    chrome.notifications.onClicked.addListener((clickedId) => {
+                        if (clickedId === notificationId && explorer) {
+                            chrome.tabs.create({ url: `${explorer}/tx/${txResponse.hash}` });
+                        }
+                    });
+
                 });
 
                 sendResponse({ success: true, txHash: txResponse.hash });
