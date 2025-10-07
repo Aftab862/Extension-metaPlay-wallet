@@ -12,7 +12,7 @@ import {
 } from "../../utils/helper";
 
 const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, setBalance, AccountTitle, Account }) => {
-    const [loading, setLoading] = useState(false);
+
     const [openReceive, setOpenReceive] = useState(false);
     const [openSend, setOpenSend] = useState(false);
     const [error, setError] = useState(null);
@@ -20,10 +20,7 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
 
     const fetchBalance = useCallback(async () => {
         if (!userWalletAddress || !selectedChain?.rpcUrl) return;
-
-        setLoading(true);
         setError(null);
-
         try {
             const res = await bgRequest({
                 type: "GET_BALANCE",
@@ -41,18 +38,16 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
         } catch (err) {
             setError(err.message || "Balance check failed");
         } finally {
-            setLoading(false);
+
         }
     }, [userWalletAddress, selectedChain?.rpcUrl]);
 
     useEffect(() => {
-        fetchBalance();
-    }, [fetchBalance]);
+        if (userWalletAddress && selectedChain?.rpcUrl) {
+            handleRefresh();
+        }
+    }, [userWalletAddress, selectedChain?.rpcUrl]);
 
-    const actionItems = [
-        { label: "Send", icon: <ArrowUpwardIcon />, onClick: () => setOpenSend(true) },
-        { label: "Receive", icon: <ArrowDownwardIcon />, onClick: () => setOpenReceive(true) },
-    ];
 
     const handleRefresh = async () => {
         if (spinning) return;
@@ -64,6 +59,10 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
         }
     };
 
+    const actionItems = [
+        { label: "Send", icon: <ArrowUpwardIcon />, onClick: () => setOpenSend(true) },
+        { label: "Receive", icon: <ArrowDownwardIcon />, onClick: () => setOpenReceive(true) },
+    ];
 
     return (
         <>
@@ -84,33 +83,30 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
                     gap={1}
                     minHeight={50}
                 >
-                    {loading ? (
-                        <CircularProgress size={20} thickness={5} />
-                    ) : (
-                        <>
-                            <Typography variant="h5" color="text.primary" fontWeight={600}>
-                                {userBalance ? `${userBalance} ${selectedChain?.nativeCurrency.symbol}` : "$0.00"}
-                            </Typography>
 
-                            <Tooltip title="Refresh balance">
-                                <IconButton
-                                    onClick={handleRefresh}
-                                    size="small"
-                                    sx={{
-                                        color: "text.secondary",
-                                        "&:hover": { color: "primary.main" },
-                                        transition: "transform 0.3s ease",
-                                        "&.spin": {
-                                            animation: "spin 0.7s linear",
-                                        },
-                                    }}
-                                    className={spinning ? "spin" : ""}
-                                >
-                                    <RefreshIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </>
-                    )}
+                    <Typography variant="h5" color="text.primary" fontWeight={600}>
+                        {userBalance ? `${userBalance} ${selectedChain?.nativeCurrency.symbol}` : "$0.00"}
+                    </Typography>
+
+                    <Tooltip title="Refresh balance">
+                        <IconButton
+                            onClick={handleRefresh}
+                            size="small"
+                            sx={{
+                                color: "text.secondary",
+                                "&:hover": { color: "primary.main" },
+                                transition: "transform 0.3s ease",
+                                "&.spin": {
+                                    animation: "spin 0.7s linear",
+                                },
+                            }}
+                            className={spinning ? "spin" : ""}
+                        >
+                            <RefreshIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+
+
                 </Box>
 
                 <Typography variant="subtitle2" color="text.secondary">
