@@ -4,7 +4,9 @@ import {
     Menu,
     MenuItem,
     Typography,
-    CircularProgress
+    CircularProgress,
+    useTheme,
+    alpha,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -21,6 +23,8 @@ import SendTokenModal from "./SendTokenModal";
 import ReceiveTokenModal from "./ReceiveTokenModal";
 import ReceiveModal from "../Transction/Receive";
 import TokenAvatar from "./TokenAvatar";
+import { chainIcons } from "../../Assets/chainIconsUrls";
+
 
 const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
     AccountTitle,
@@ -94,72 +98,114 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
 
         fetchBalances();
     }, [userWalletAddress, setAllChains, userBalance]);
+    const theme = useTheme();
 
 
     return (
         <div>
-            <Box p={1}>
+            <Box
+                p={2}
+                sx={{
+                    bgcolor: "background.paper",
+                    borderRadius: 3,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+            >
+                {/* Header */}
                 <Box
                     sx={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
+                        mb: 1,
+
+                        pb: 1,
                     }}
                 >
-                    <Box display="flex" p={1} alignItems="center">
-                        <Avatar
-                            sx={{
-                                fontSize: "10px",
-                                bgcolor: mapColors(selectedChain?.nativeCurrency?.symbol),
-                                mr: 1,
-                            }}
-                        >
-                            {selectedChain?.nativeCurrency?.symbol}
-                        </Avatar>
-                        <Typography fontWeight="bold">
-                            {selectedChain?.name.split(" ")[0]}
-                        </Typography>
-                    </Box>
+                    <Typography fontWeight="bold" fontSize="1.05rem" pl={1}>
+                        {selectedChain?.name}
+                    </Typography>
+
                     <Box display="flex" gap={1}>
-                        <FilterListIcon />
-                        <MoreVertIcon onClick={handleMenuOpen} />
+                        <FilterListIcon
+                            sx={{
+                                color: "text.secondary",
+                                cursor: "pointer",
+                                "&:hover": { color: theme.palette.primary.main },
+                            }}
+                        />
+                        <MoreVertIcon
+                            onClick={handleMenuOpen}
+                            sx={{
+                                color: "text.secondary",
+                                cursor: "pointer",
+                                "&:hover": { color: theme.palette.primary.main },
+                            }}
+                        />
                     </Box>
                 </Box>
 
-
-                <Box sx={{ height: "32vh", overflowY: "auto" }}>
+                {/* Token list area */}
+                <Box
+                    sx={{
+                        height: "34vh",
+                        overflowY: "auto",
+                        pr: 1,
+                        "&::-webkit-scrollbar": {
+                            width: "6px",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                            borderRadius: "8px",
+                        },
+                        "&::-webkit-scrollbar-thumb:hover": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.5),
+                        },
+                    }}
+                >
                     {loading ? (
                         <Box display="flex" justifyContent="center" py={3}>
                             <CircularProgress size={24} />
                         </Box>
                     ) : (
                         <>
-                            {/* Chain header */}
+                            {/* Native chain header */}
                             <Box
                                 display="flex"
                                 justifyContent="space-between"
                                 alignItems="center"
                                 p={1.5}
+                                mb={1}
+                                borderRadius={2}
+                                sx={{
+                                    bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                    transition: "background 0.2s ease",
+                                    "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.08) },
+                                }}
                             >
-                                <Box>
-                                    <Typography fontWeight="bold">
-                                        {selectedChain?.nativeCurrency?.name}
-                                    </Typography>
-                                    <Typography fontSize="0.85rem" color="text.secondary">
-                                        Native
-                                    </Typography>
+                                <Box display="flex" alignItems="center" gap={1.5}>
+                                    <Avatar
+                                        src={chainIcons(selectedChain.nativeCurrency?.symbol)}
+                                        sx={{ width: 38, height: 38 }}
+                                    />
+                                    <Box>
+                                        <Typography fontWeight="bold">
+                                            {selectedChain?.nativeCurrency?.name}
+                                        </Typography>
+                                        <Typography fontSize="0.8rem" color="text.secondary">
+                                            Native
+                                        </Typography>
+                                    </Box>
                                 </Box>
-                                <Box textAlign="right">
-                                    <Typography fontWeight="bold">
-                                        {userBalance ?? "$0.00"}
-                                    </Typography>
-                                </Box>
+
+                                <Typography fontWeight="bold">
+                                    {userBalance ?? "$0.00"}
+                                </Typography>
                             </Box>
 
-                            {/* Token list */}
+                            {/* Token List */}
                             {selectedChain?.tokens?.length > 0 ? (
                                 selectedChain.tokens.map((t) => {
-                                    // --- NEW LOGIC: Calculate Icon URL and use TokenAvatar ---
                                     const tokenIconUrl = getTokenIconUrl(
                                         selectedChain?.chainId,
                                         t.address
@@ -167,33 +213,46 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
 
                                     return (
                                         <Box
-                                            px={2}
                                             key={t.address || t.symbol}
                                             display="flex"
                                             justifyContent="space-between"
                                             alignItems="center"
+                                            px={1.5}
                                             py={1.2}
-                                            borderBottom="1px solid #f4f4f4"
-                                            onClick={() => { setSelectedToken(t); setTokenModal(true) }}
-                                            sx={{ cursor: "pointer", "&:hover": { bgcolor: "#fafafa" } }}
+                                            borderRadius={2}
+                                            mb={0.5}
+                                            onClick={() => {
+                                                setSelectedToken(t);
+                                                setTokenModal(true);
+                                            }}
+                                            sx={{
+                                                cursor: "pointer",
+                                                transition: "background 0.2s ease, transform 0.1s ease",
+                                                "&:hover": {
+                                                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                                    transform: "scale(1.01)",
+                                                },
+                                            }}
                                         >
-                                            <Box display="flex" alignItems="center">
-                                                {/* USE THE NEW TokenAvatar component here */}
+                                            <Box display="flex" alignItems="center" gap={1.5}>
                                                 <TokenAvatar
                                                     iconUrl={tokenIconUrl}
                                                     symbol={t.symbol}
-                                                    size={30} // Consistent size for the list item
+                                                    size={32}
                                                 />
-
                                                 <Box>
                                                     <Typography fontWeight="500">{t.name}</Typography>
                                                     {t?.address && (
-                                                        <Typography fontSize="0.75rem" color="text.secondary">
+                                                        <Typography
+                                                            fontSize="0.75rem"
+                                                            color="text.secondary"
+                                                        >
                                                             {t.address.slice(0, 6)}...{t.address.slice(-4)}
                                                         </Typography>
                                                     )}
                                                 </Box>
                                             </Box>
+
                                             <Box textAlign="right">
                                                 <Typography fontWeight="500">{t.balance}</Typography>
                                                 <Typography fontSize="0.8rem" color="text.secondary">
@@ -211,7 +270,6 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
                         </>
                     )}
                 </Box>
-
             </Box>
 
             {/* Menu */}
