@@ -326,7 +326,10 @@ const WalletDashboard = ({
                             Wallet {selectedWalletIndex + 1}
                         </Typography>
                         <Typography variant="caption" color="white">
-                            Account {selectedAccountIndex + 1}
+
+                            {typeof AccountTitle === "string" && AccountTitle.trim() !== ""
+                                ? AccountTitle
+                                : `Account ${AccountTitle + 1}`}
                         </Typography>
                     </Box>
                     <Avatar sx={{ width: 28, height: 18, ml: 0.4, background: "#1976d2" }}>
