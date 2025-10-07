@@ -23,7 +23,7 @@ import SendTokenModal from "./SendTokenModal";
 import ReceiveTokenModal from "./ReceiveTokenModal";
 import ReceiveModal from "../Transction/Receive";
 import TokenAvatar from "./TokenAvatar";
-import { chainIcons } from "../../Assets/chainIconsUrls";
+import { chainIcons } from "../../Assets/chainIconsUrls.js";
 
 
 const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,

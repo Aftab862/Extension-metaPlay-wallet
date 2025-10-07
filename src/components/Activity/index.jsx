@@ -21,6 +21,7 @@ import { useTransactionHistory } from "../Hooks/useTransactionHistory";
 import { loadFromLocalStorage } from "../../utils/storage";
 import { CHAIN_ID } from "../../utils/keys";
 import TxDetailsModal from "./TxDetailsModal";
+import { chainIcons } from "../../Assets/chainIconsUrls";
 
 // --- GROUPING + META HELPERS ---
 
@@ -119,9 +120,9 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                 >
                     <Box display="flex" alignItems="center">
                         <Avatar
+                            src={chainIcons(selectedChain?.nativeCurrency?.symbol)}
                             sx={{
                                 fontSize: "10px",
-                                bgcolor: mapColors(selectedChain?.nativeCurrency?.symbol),
                                 mr: 1,
                             }}
                         >

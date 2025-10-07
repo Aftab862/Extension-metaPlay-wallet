@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Avatar, Box, Grid, Typography, CircularProgress } from "@mui/material";
+import { Avatar, Box, Grid, Typography, CircularProgress, alpha, Tooltip, IconButton } from "@mui/material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import ReceiveModal from "./Receive";
 import SendModal from "./Send";
 import {
@@ -15,7 +16,7 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
     const [openReceive, setOpenReceive] = useState(false);
     const [openSend, setOpenSend] = useState(false);
     const [error, setError] = useState(null);
-
+    const [spinning, setSpinning] = useState(false);
 
     const fetchBalance = useCallback(async () => {
         if (!userWalletAddress || !selectedChain?.rpcUrl) return;
@@ -53,30 +54,84 @@ const Transaction = ({ userWalletAddress, wallet, selectedChain, userBalance, se
         { label: "Receive", icon: <ArrowDownwardIcon />, onClick: () => setOpenReceive(true) },
     ];
 
+    const handleRefresh = async () => {
+        if (spinning) return;
+        setSpinning(true);
+        try {
+            await fetchBalance();
+        } finally {
+            setTimeout(() => setSpinning(false), 700);
+        }
+    };
 
 
     return (
         <>
-            <Box display="flex" flexDirection="column" alignItems="center" my={2}>
-
-                <Box display="flex" alignItems="center" justifyContent="center" minHeight={40}>
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                my={1}
+                sx={{
+                    transition: "background 0.3s ease",
+                }}
+            >
+                {/* Balance value and refresh */}
+                <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={1}
+                    minHeight={50}
+                >
                     {loading ? (
                         <CircularProgress size={20} thickness={5} />
                     ) : (
-                        <Typography variant="h5" color="text.secondary">
-                            {userBalance ?? "$0.00"}
-                        </Typography>
+                        <>
+                            <Typography variant="h5" color="text.primary" fontWeight={600}>
+                                {userBalance ? `${userBalance} ${selectedChain?.nativeCurrency.symbol}` : "$0.00"}
+                            </Typography>
+
+                            <Tooltip title="Refresh balance">
+                                <IconButton
+                                    onClick={handleRefresh}
+                                    size="small"
+                                    sx={{
+                                        color: "text.secondary",
+                                        "&:hover": { color: "primary.main" },
+                                        transition: "transform 0.3s ease",
+                                        "&.spin": {
+                                            animation: "spin 0.7s linear",
+                                        },
+                                    }}
+                                    className={spinning ? "spin" : ""}
+                                >
+                                    <RefreshIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </>
                     )}
                 </Box>
 
                 <Typography variant="subtitle2" color="text.secondary">
                     Total Balance
                 </Typography>
+
                 {error && (
-                    <Typography variant="caption" color="error">
+                    <Typography variant="caption" color="error" mt={0.5}>
                         {error}
                     </Typography>
                 )}
+
+                {/* Local keyframes */}
+                <style>
+                    {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+                </style>
             </Box>
 
             <Grid

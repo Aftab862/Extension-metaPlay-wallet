@@ -20,7 +20,7 @@ import {
 import { mapColors } from "../utils/helper";
 import { AddChainHandler } from "../utils/storage";
 import { Close } from "@mui/icons-material";
-import { chainIcons } from "../Assets/chainIconsUrls";
+import { chainIcons } from "../Assets/chainIconsUrls.js";
 
 export default function ChainSelectorModal({
     open,
