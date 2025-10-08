@@ -284,14 +284,13 @@ const WalletDashboard = ({
         setAccountdetailModal(false);
 
     }
-
     const handleMenuClick = (action) => {
         switch (action) {
             case "account-details":
                 setAccountdetailModal(true)
                 break;
             case "explorer":
-                window.open("https://etherscan.io", "_blank");
+                window.open(selectedChain?.explorerUrl, "_blank");
                 break;
             case "expand":
                 console.log("Expand view triggered");
