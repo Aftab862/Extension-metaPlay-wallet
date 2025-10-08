@@ -296,7 +296,8 @@ const WalletDashboard = ({
                 console.log("Expand view triggered");
                 break;
             case "networks":
-                console.log("Open networks modal");
+                setChainModalOpen(true);
+                setMenuList(false)
                 break;
             case "settings":
                 console.log("Navigate to settings");
