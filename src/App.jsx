@@ -1,5 +1,5 @@
 import React, { useEffect, useState, lazy, Suspense, useMemo, useCallback } from "react";
-import { Container } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { Wallet } from "ethers";
 import { encryptMnemonic, decryptMnemonic, isWalletAvalailable } from "./utils/cryptoUtils";
 import { isSessionValid, saveLoginTime } from "./utils/sessionUtils";
@@ -206,65 +206,79 @@ const App = () => {
     const memoSelA = useMemo(() => selectedAccountIndex, [selectedAccountIndex]);
 
     return (
-        <Container sx={{ m: 0, p: 0, width: 360, height: 550 }}>
-            <Suspense fallback={<Loader />}>
-                {step === "checking" && <Loader message="Initializing..." />}
+        <Box display="flex" justifyContent="center" alignItems="center"
+            sx={{
+                height: {
+                    xs: "100%",
+                    sm: "100%",
+                    md: "85vh",
+                    lg: "85vh",
+                    xl: "85vh",
+                },
+            }}
+        >
 
-                {step === "welcome" && (
-                    <WelcomeScreen
-                        onCreateWallet={() => {
-                            const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
-                            if (!newMnemonic) return;
-                            setMnemonic(newMnemonic);
-                            setStep("set-password");
-                        }}
-                        onImportWallet={() => setStep("import-wallet")}
-                    />
-                )}
 
-                {step === "import-wallet" && (
-                    <ImportWalletScreen onImport={handleImportMnemonic} />
-                )}
+            <Container disableGutters sx={{ m: 0, p: 0, width: 360, height: 550 }}>
+                <Suspense fallback={<Loader />}>
+                    {step === "checking" && <Loader message="Initializing..." />}
 
-                {(step === "set-password" || step === "enter-password") && (
-                    <PasswordScreen
-                        mode={step === "set-password" ? "create" : "enter"}
-                        onPasswordSubmit={handlePasswordSubmit}
-                        error={error}
-                    />
-                )}
+                    {step === "welcome" && (
+                        <WelcomeScreen
+                            onCreateWallet={() => {
+                                const newMnemonic = Wallet.createRandom().mnemonic?.phrase;
+                                if (!newMnemonic) return;
+                                setMnemonic(newMnemonic);
+                                setStep("set-password");
+                            }}
+                            onImportWallet={() => setStep("import-wallet")}
+                        />
+                    )}
 
-                {step === "save-phrase" && (
-                    <SavePhraseScreen mnemonic={mnemonic} onContinue={handleSavePhraseContinue} />
-                )}
-                {step === "verify" && (
-                    <VerifyPhraseScreen mnemonic={mnemonic} onContinue={handleVerifyContinue} />
-                )}
+                    {step === "import-wallet" && (
+                        <ImportWalletScreen onImport={handleImportMnemonic} />
+                    )}
 
-                {step === "main" && (
-                    <WalletDashboard
-                        wallets={memoWallets}
-                        // ✅ new nested selection
-                        selectedWalletIndex={memoSelW}
-                        selectedAccountIndex={memoSelA}
-                        onSelectAccount={handleSelectAccount}   // (walletIndex, accountIndex)
-                        onAddAccount={handleAddAccount}
-                        loading={loading}
-                        setWallets={setWallets}
-                        setSelectedAccountIndex={setSelectedAccountIndex}
-                        setSelectedWalletIndex={setSelectedWalletIndex}
-                        // Optional: keep this for backward-compat if your Dashboard still expects it
-                        selectedIndex={memoSelA}
-                        allChains={allChains}
-                        setAllChains={setAllChains}
-                        referesh={referesh}
-                        setReferesh={setReferesh}
-                        selectedChain={selectedChain}
-                        setSelectedChain={setSelectedChain}
-                    />
-                )}
-            </Suspense>
-        </Container>
+                    {(step === "set-password" || step === "enter-password") && (
+                        <PasswordScreen
+                            mode={step === "set-password" ? "create" : "enter"}
+                            onPasswordSubmit={handlePasswordSubmit}
+                            error={error}
+                        />
+                    )}
+
+                    {step === "save-phrase" && (
+                        <SavePhraseScreen mnemonic={mnemonic} onContinue={handleSavePhraseContinue} />
+                    )}
+                    {step === "verify" && (
+                        <VerifyPhraseScreen mnemonic={mnemonic} onContinue={handleVerifyContinue} />
+                    )}
+
+                    {step === "main" && (
+                        <WalletDashboard
+                            wallets={memoWallets}
+                            // ✅ new nested selection
+                            selectedWalletIndex={memoSelW}
+                            selectedAccountIndex={memoSelA}
+                            onSelectAccount={handleSelectAccount}   // (walletIndex, accountIndex)
+                            onAddAccount={handleAddAccount}
+                            loading={loading}
+                            setWallets={setWallets}
+                            setSelectedAccountIndex={setSelectedAccountIndex}
+                            setSelectedWalletIndex={setSelectedWalletIndex}
+                            // Optional: keep this for backward-compat if your Dashboard still expects it
+                            selectedIndex={memoSelA}
+                            allChains={allChains}
+                            setAllChains={setAllChains}
+                            referesh={referesh}
+                            setReferesh={setReferesh}
+                            selectedChain={selectedChain}
+                            setSelectedChain={setSelectedChain}
+                        />
+                    )}
+                </Suspense>
+            </Container>
+        </Box>
     );
 };
 

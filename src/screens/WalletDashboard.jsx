@@ -293,7 +293,9 @@ const WalletDashboard = ({
                 window.open(selectedChain?.explorerUrl, "_blank");
                 break;
             case "expand":
-                console.log("Expand view triggered");
+                chrome.tabs.create({
+                    url: chrome.runtime.getURL("popup.html"),
+                });
                 break;
             case "networks":
                 setChainModalOpen(true);
