@@ -219,7 +219,10 @@ const App = () => {
         >
 
 
-            <Container disableGutters sx={{ m: 0, p: 0, width: 360, height: 550 }}>
+            <Container disableGutters sx={{
+                m: 0, p: 0, width: 360, height: 550,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            }}>
                 <Suspense fallback={<Loader />}>
                     {step === "checking" && <Loader message="Initializing..." />}
 

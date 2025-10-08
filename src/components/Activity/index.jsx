@@ -8,6 +8,8 @@ import {
     ListItemAvatar,
     ListItemText,
     CircularProgress,
+    alpha,
+    useTheme,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -99,12 +101,18 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
         chainId,
         userWalletAddress
     );
-
     const grouped = groupByDate(history || []);
+    const theme = useTheme();
+
 
     return (
         <>
-            <Box p={2}>
+            <Box p={2}
+                sx={{
+                    bgcolor: "background.paper",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+            >
 
 
 
@@ -137,88 +145,114 @@ const Activity = ({ selectedChain, userWalletAddress }) => {
                         <RefreshIcon />
                     </IconButton>
                 </Box>
+                <Box
+                    sx={{
+                        height: "32vh",
+                        overflowY: "auto",
+                        pr: 1,
+                        "&::-webkit-scrollbar": { width: "6px" },
+                        "&::-webkit-scrollbar-thumb": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                            borderRadius: "8px",
+                        },
+                        "&::-webkit-scrollbar-thumb:hover": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.5),
+                        },
+                    }}
+                >
+                    {loading ? (
+                        // 🟡 Loading State
+                        <Box display="flex" justifyContent="center" py={3}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : error ? (
+                        // 🔴 Error State
+                        <Box display="flex" justifyContent="center" py={3}>
+                            <Typography color="error">{error}</Typography>
+                        </Box>
+                    ) : history.length === 0 ? (
+                        // ⚪ Empty State
+                        <Typography variant="body2" color="text.secondary" py={3} textAlign="center">
+                            No transactions yet.
+                        </Typography>
+                    ) : (
+                        // 🟢 Data State
+                        <List
+                            sx={{
+                                maxHeight: "100%",
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": { display: "none" },
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                            }}
+                        >
+                            {Object.keys(grouped).map((date) => (
+                                <Box key={date} mb={2}>
+                                    <Typography
+                                        variant="subtitle2"
+                                        color="text.secondary"
+                                        sx={{ mb: 1 }}
+                                    >
+                                        {date}
+                                    </Typography>
 
-                {/* Loading / Error */}
-                {loading && <CircularProgress size={24} />}
-                {error && <Typography color="error">{error}</Typography>}
+                                    {grouped[date].map((tx) => {
+                                        const meta = getTxMeta(
+                                            tx,
+                                            selectedChain?.nativeCurrency?.symbol,
+                                            userWalletAddress
+                                        );
+                                        const status = getStatusMeta(tx.status);
 
-                {/* Empty */}
-                {history.length === 0 && !loading ? (
-                    <Typography variant="body2" color="text.secondary">
-                        No transactions yet.
-                    </Typography>
-                ) : (
-                    <List
-                        sx={{
-                            maxHeight: "30vh",
-                            overflowY: "auto",
-                            "&::-webkit-scrollbar": { display: "none" },
-                            scrollbarWidth: "none",
-                            msOverflowStyle: "none",
-                        }}
-                    >
-                        {Object.keys(grouped).map((date) => (
-                            <Box key={date} mb={2}>
-                                <Typography
-                                    variant="subtitle2"
-                                    color="text.secondary"
-                                    sx={{ mb: 1 }}
-                                >
-                                    {date}
-                                </Typography>
-                                {grouped[date].map((tx) => {
-                                    const meta = getTxMeta(
-                                        tx,
-                                        selectedChain?.nativeCurrency?.symbol,
-                                        userWalletAddress
-                                    );
-                                    const status = getStatusMeta(tx.status);
+                                        return (
+                                            <ListItem
+                                                key={tx.txHash}
+                                                onClick={() => {
+                                                    setOpen(true);
+                                                    setTransactionDetails(tx);
+                                                }}
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    bgcolor: "background.paper",
+                                                    boxShadow: 1,
+                                                    mb: 1,
+                                                    p: 1.5,
+                                                    cursor: "pointer",
+                                                    transition: "background 0.2s ease, transform 0.1s ease",
+                                                    "&:hover": {
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                                        transform: "scale(1.01)",
+                                                    },
+                                                }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar sx={{ bgcolor: "grey.100" }}>{meta.icon}</Avatar>
+                                                </ListItemAvatar>
 
-                                    return (
-                                        <ListItem
-                                            key={tx.txHash}
-                                            onClick={() => {
-                                                setOpen(true);
-                                                setTransactionDetails(tx)
-                                            }}
-                                            sx={{
-                                                borderRadius: 2,
-                                                bgcolor: "background.paper",
-                                                boxShadow: 1,
-                                                mb: 1,
-                                                p: 1.5,
-                                            }}
-                                        >
-                                            <ListItemAvatar>
-                                                <Avatar sx={{ bgcolor: "grey.100" }}>{meta.icon}</Avatar>
-                                            </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={
+                                                        <Box display="flex" justifyContent="space-between">
+                                                            <Typography fontWeight="bold">{meta.label}</Typography>
+                                                            <Typography fontWeight="bold">{meta.amount}</Typography>
+                                                        </Box>
+                                                    }
+                                                    secondary={
+                                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                                            <Typography variant="body2" sx={{ color: status.color }}>
+                                                                {status.text}
+                                                            </Typography>
+                                                        </Box>
+                                                    }
+                                                />
+                                            </ListItem>
+                                        );
+                                    })}
+                                </Box>
+                            ))}
+                        </List>
+                    )}
+                </Box>
 
-                                            <ListItemText
-                                                primary={
-                                                    <Box display="flex" justifyContent="space-between">
-                                                        <Typography fontWeight="bold">{meta.label}</Typography>
-                                                        <Typography fontWeight="bold">{meta.amount}</Typography>
-                                                    </Box>
-                                                }
-                                                secondary={
-                                                    <Box display="flex" alignItems="center" gap={0.5}>
-                                                        {/* {status.icon} */}
-                                                        <Typography
-                                                            variant="body2"
-                                                            sx={{ color: status.color }}
-                                                        >
-                                                            {status.text}
-                                                        </Typography>
-                                                    </Box>
-                                                }
-                                            />
-                                        </ListItem>
-                                    );
-                                })}
-                            </Box>
-                        ))}
-                    </List>
-                )}
             </Box>
 
             {open && transactionDetails && <TxDetailsModal

@@ -107,7 +107,6 @@ const TokensTab = ({ selectedChain, userWalletAddress, setAllChains, referesh,
                 p={2}
                 sx={{
                     bgcolor: "background.paper",
-                    borderRadius: 3,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                 }}
             >
