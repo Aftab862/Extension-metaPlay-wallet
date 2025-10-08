@@ -10,181 +10,178 @@ import {
     List,
     ListItemButton,
     ListItemText,
-    Avatar,
     Divider,
-    Switch,
+    Avatar,
 } from "@mui/material";
-import { Close, Edit, ArrowForwardIos } from "@mui/icons-material";
+import { Close, ArrowForwardIos } from "@mui/icons-material";
 import { findAccountDetails } from "../../utils/helper";
-import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 
-export default function AccountDetailsModal({ wallet, open, onClose, currentAccount, handleSecretePhrases }) {
-    // console.log("currentAccount Details : ", currentAccount, wallet);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+export default function AccountDetailsModal({
+    wallet,
+    open,
+    onClose,
+    currentAccount,
+    handleSecretePhrases,
+}) {
     const [data, setData] = useState(null);
-
-
-
-
-
+    const [error, setError] = useState("");
 
     useEffect(() => {
         if (wallet && currentAccount) {
             const match = findAccountDetails(wallet, currentAccount);
-            if (match) {
-
-                setData(match);
-
-            } else {
-                setError("Account not found in wallets");
-            }
+            match ? setData(match) : setError("Account not found in wallets");
         }
-    }, []);
+    }, [wallet, currentAccount]);
 
-
+    const accountName =
+        data?.account?.accountName ||
+        `Account ${(data?.account?.accountIndex ?? 0) + 1}`;
+    const address =
+        data?.chain?.address &&
+        `${data.chain.address.slice(0, 6)}...${data.chain.address.slice(-4)}`;
+    const walletLabel = `Wallet ${(currentAccount?.wId ?? 0) + 1}`;
 
     return (
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="md"
+            maxWidth="xs"
             fullWidth
             PaperProps={{
                 sx: {
-                    bgcolor: "#fff",
-                    color: "#333",
-                    borderRadius: 2,
+                    bgcolor: "#fafafa",
+                    color: "#222",
+                    borderRadius: 3,
+                    boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
                 },
             }}
         >
             <DialogTitle
                 sx={{
-                    pb: 1,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "flex-end",
+                    justifyContent: "space-between",
+                    px: 3,
+                    pt: 2,
+                    pb: 1,
                 }}
             >
-                {/* <Typography variant="subtitle1" fontWeight="bold">
-                    {data?.account?.accountName ? data?.account?.accountName : `Account ${(data?.account?.accountIndex) + 1}`}
-                </Typography> */}
+                <Typography variant="h6" fontWeight="bold">
+                    Account Details
+                </Typography>
                 <IconButton onClick={onClose} size="small">
-                    <Close sx={{ color: "#333" }} />
+                    <Close sx={{ color: "#444" }} />
                 </IconButton>
             </DialogTitle>
 
-            <DialogContent sx={{ px: 0, pt: 2 }}>
-                {/* Avatar */}
-                <Box display="flex" justifyContent="center" mb={2}>
-                    {/* <Avatar
+            <DialogContent sx={{ px: 0, pt: 1 }}>
+                <Box display="flex" justifyContent="center" mb={2} mt={1}>
+                    <Avatar
                         sx={{
-                            width: 60,
-                            height: 60,
-                            bgcolor: "purple",
-                            fontSize: 20,
+                            width: 64,
+                            height: 64,
+                            bgcolor: "#1976d2",
+                            fontSize: 22,
+                            fontWeight: "bold",
                         }}
                     >
-                        A
-                    </Avatar> */}
-
-                    <InsertEmoticonIcon sx={{
-                        width: 60,
-                        height: 60,
-                    }} />
+                        {accountName?.[0]?.toUpperCase() || "A"}
+                    </Avatar>
                 </Box>
 
-                {/* Account Name */}
                 <List disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
+                    <ListItemButton sx={{ px: 3, py: 1 }}>
                         <ListItemText
-                            primary="Account name"
-                            secondary={data?.account?.accountName ? data?.account?.accountName : `Account ${(data?.account?.accountIndex) + 1}`}
-                            primaryTypographyProps={{ color: "#333", fontSize: 13 }}
-                            secondaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
+                            primary="Account Name"
+                            secondary={accountName}
+                            primaryTypographyProps={{ fontSize: 13, color: "#555" }}
+                            secondaryTypographyProps={{
+                                fontWeight: "bold",
+                                fontSize: 14,
+                                color: "#111",
+                            }}
                         />
-                        <Edit fontSize="small" sx={{ color: "#333" }} />
                     </ListItemButton>
 
-                    <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
+                    <Divider />
 
-                    {/* Address */}
-                    <ListItemButton sx={{ px: 2 }}>
+                    <ListItemButton sx={{ px: 3, py: 1 }}>
                         <ListItemText
                             primary="Address"
-                            secondary={data?.chain?.address ? `${data?.chain?.address.slice(0, 6)}...${data?.chain?.address.slice(-4)}` : ""}
-                            primaryTypographyProps={{ color: "#333", fontSize: 13 }}
-                            secondaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
+                            secondary={address}
+                            primaryTypographyProps={{ fontSize: 13, color: "#555" }}
+                            secondaryTypographyProps={{
+                                fontWeight: "bold",
+                                fontSize: 14,
+                                color: "#111",
+                            }}
                         />
-                        <ArrowForwardIos sx={{ color: "#333", fontSize: 16 }} />
                     </ListItemButton>
 
-                    <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
+                    <Divider />
 
-                    {/* Wallet */}
-                    <ListItemButton sx={{ px: 2 }}>
+                    <ListItemButton sx={{ px: 3, py: 1 }}>
                         <ListItemText
                             primary="Wallet"
-                            secondary={`Wallet ${(currentAccount?.wId) + 1}`}
-                            primaryTypographyProps={{ color: "#333", fontSize: 13 }}
-                            secondaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
+                            secondary={walletLabel}
+                            primaryTypographyProps={{ fontSize: 13, color: "#555" }}
+                            secondaryTypographyProps={{
+                                fontWeight: "bold",
+                                fontSize: 14,
+                                color: "#111",
+                            }}
                         />
-                        <ArrowForwardIos sx={{ color: "#333", fontSize: 16 }} />
+                        {/* <ArrowForwardIos sx={{ color: "#999", fontSize: 16 }} /> */}
                     </ListItemButton>
                 </List>
 
-                <Divider sx={{ bgcolor: "rgba(255,255,255,0.2)", my: 2 }} />
+                <Divider sx={{ my: 1.5 }} />
 
-                {/* Secret Recovery Phrase */}
                 <List disablePadding>
-                    <ListItemButton onClick={() => handleSecretePhrases("phrase")} sx={{ px: 2 }}>
+                    <ListItemButton
+                        onClick={() => handleSecretePhrases("phrase")}
+                        sx={{ px: 3, py: 1 }}
+                    >
                         <ListItemText
                             primary="Secret Recovery Phrase"
-                            primaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
+                            primaryTypographyProps={{
+                                fontWeight: "bold",
+                                fontSize: 14,
+                                color: "#111",
+                            }}
                         />
-                        <ArrowForwardIos sx={{ color: "#333", fontSize: 16 }} />
+                        <ArrowForwardIos sx={{ color: "#999", fontSize: 16 }} />
                     </ListItemButton>
 
-                    <Divider sx={{ bgcolor: "rgba(255,255,255,0.1)" }} />
+                    <Divider />
 
-                    {/* Private Key */}
-                    <ListItemButton onClick={() => handleSecretePhrases("privateKey")} sx={{ px: 2 }}>
+                    <ListItemButton
+                        onClick={() => handleSecretePhrases("privateKey")}
+                        sx={{ px: 3, py: 1 }}
+                    >
                         <ListItemText
-                            primary="Private key"
-                            primaryTypographyProps={{ color: "#333", fontWeight: "bold" }}
+                            primary="Private Key"
+                            primaryTypographyProps={{
+                                fontWeight: "bold",
+                                fontSize: 14,
+                                color: "#111",
+                            }}
                         />
-                        <ArrowForwardIos sx={{ color: "#333", fontSize: 16 }} />
+                        <ArrowForwardIos sx={{ color: "#999", fontSize: 16 }} />
                     </ListItemButton>
                 </List>
-                {/* 
-                <Divider sx={{ bgcolor: "rgba(255,255,255,0.2)", my: 2 }} />
 
-              
-                <Box px={2} mb={1}>
-                    <Typography fontWeight="bold" mb={0.5}>
-                        Enable smart contract account
-                    </Typography>
+                {error && (
                     <Typography
+                        color="error"
                         variant="body2"
-                        color="rgba(255,255,255,0.6)"
-                        fontSize={12}
-                        mb={1}
+                        textAlign="center"
+                        mt={2}
+                        px={2}
                     >
-                        You can enable smart account features on supported networks.{" "}
-                        <span style={{ color: "#4c82fb", cursor: "pointer" }}>Learn more</span>
+                        {error}
                     </Typography>
-
-                
-                    <Box display="flex" justifyContent="space-between" alignItems="center" py={0.5}>
-                        <Typography>Ethereum Mainnet</Typography>
-                        <Switch />
-                    </Box>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" py={0.5}>
-                        <Typography>Polygon Mainnet</Typography>
-                        <Switch />
-                    </Box>
-                </Box> */}
-
+                )}
             </DialogContent>
         </Dialog>
     );
