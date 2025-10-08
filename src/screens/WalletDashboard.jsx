@@ -30,7 +30,7 @@ const Transction = lazy(() => import("../components/Transction"));
 import { findAccountByAddress, findAccountNameOrIndex, mapColors } from "../utils/helper";
 import { generateWalletFromMnemonic, normalizeWalletObject, persistWalletState } from "../utils/walletUtils";
 import { ethers } from "ethers";
-import { CHAIN_ID, PK_PUBLICKEY, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
+import { CHAIN_ID, PK_PUBLICKEY, SESSION_KEY, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { decryptMnemonic, encryptMnemonic, encryptPk } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
 
@@ -303,7 +303,9 @@ const WalletDashboard = ({
                 console.log("Navigate to settings");
                 break;
             case "lock":
-                console.log("Lock wallet");
+
+                localStorage.removeItem(SESSION_KEY);
+                window.location.reload();
                 break;
             default:
                 break;
