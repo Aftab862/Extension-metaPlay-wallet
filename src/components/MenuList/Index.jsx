@@ -45,12 +45,13 @@ const MenuListModal = ({ open, onClose, onMenuClick, setCurrentAccount, wallet, 
             open={open}
             onClose={onClose}
             disableScrollLock
+            fullWidth maxWidth="xs"
             PaperProps={{
                 sx: {
                     bgcolor: "#fff",
                     color: "black",
                     borderRadius: "12px",
-                    minWidth: 280,
+                    // minWidth: 280,
                 },
             }}
         >

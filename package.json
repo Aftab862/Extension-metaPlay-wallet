@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": "Aftab Ahmad",
   "scripts": {
     "watch:background": "npx esbuild src/background.js --bundle --outfile=dist/background.js --format=iife --minify --watch",
     "watch:ui": "vite build --watch",
