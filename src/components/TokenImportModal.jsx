@@ -131,7 +131,7 @@ const ImportTokenDialog = ({ open, onClose, rpcUrl, userWalletAddress, setAllCha
 
 
     return (
-        <Dialog open={open} disableScrollLock onClose={handleClose} fullWidth>
+        <Dialog open={open} disableScrollLock onClose={handleClose} maxWidth="md">
             <DialogTitle>Import Token</DialogTitle>
             <DialogContent>
                 <TextField

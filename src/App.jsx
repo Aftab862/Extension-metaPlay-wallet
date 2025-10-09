@@ -220,7 +220,13 @@ const App = () => {
 
 
             <Container disableGutters sx={{
-                m: 0, p: 0, width: 360, height: 550,
+                m: 0, p: 0, width: {
+                    xs: 360,
+                    sm: 360,
+                    md: 480,
+                    lg: 480,
+                    xl: 480,
+                }, height: 550,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}>
                 <Suspense fallback={<Loader />}>
