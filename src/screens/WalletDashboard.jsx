@@ -33,6 +33,8 @@ import { ethers } from "ethers";
 import { CHAIN_ID, PK_PUBLICKEY, SESSION_KEY, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "../utils/keys";
 import { decryptMnemonic, encryptMnemonic, encryptPk } from "../utils/cryptoUtils";
 import { saveToLocalStorage } from "../utils/storage";
+import ChangePasswordDialog from "../components/Settings/ChangePassword";
+import SettingsDialog from "../components/Settings";
 
 
 const WalletDashboard = ({
@@ -62,6 +64,9 @@ const WalletDashboard = ({
     const [currentAccount, setCurrentAccount] = useState(null);
     const [revelSecreteModal, setRevelSecreteModal] = useState(false);
     const [userBalance, setBalance] = useState(null);
+    const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+
 
     // Get the current wallet & account
     const selectedWallet = wallets[selectedWalletIndex] || null;
@@ -302,7 +307,7 @@ const WalletDashboard = ({
                 setMenuList(false)
                 break;
             case "settings":
-                console.log("Navigate to settings");
+                setSettingsOpen(true)
                 break;
             case "lock":
 
@@ -474,8 +479,21 @@ const WalletDashboard = ({
 
 
 
+            {settingsOpen && <SettingsDialog
+                open={settingsOpen}
+                onClose={() => setSettingsOpen(false)}
+                setPasswordDialogOpen={setPasswordDialogOpen}
+                setSettingsOpen={setSettingsOpen}
+                handleSecretePhrases={handleSecretePhrases}
 
+            />}
 
+            {passwordDialogOpen && <ChangePasswordDialog
+                open={passwordDialogOpen}
+                onClose={() => setPasswordDialogOpen(false)}
+                onPasswordChange={(newPass) => console.log("Updated password:", newPass)}
+            />
+            }
 
         </Box>
     );
