@@ -19,7 +19,7 @@ const ReceiveModal = ({ open, onClose, address, AccountTitile }) => {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm">
+        <Dialog open={open} onClose={onClose} maxWidth="xs">
             <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 Receive
                 <IconButton size="small" onClick={onClose}>

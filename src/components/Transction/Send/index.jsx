@@ -255,7 +255,7 @@ const SendModal = ({
 
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <Dialog open={open} onClose={onClose} maxWidth="xs">
             <DialogTitle>Send {chain?.name}</DialogTitle>
             <DialogContent>
                 <Box mb={2}>

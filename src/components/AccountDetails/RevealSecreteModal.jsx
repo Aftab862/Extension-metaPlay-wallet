@@ -14,6 +14,8 @@ import {
     Tooltip,
     Alert,
     CircularProgress,
+    useMediaQuery,
+    useTheme,
 } from "@mui/material";
 import { Close, ContentCopy } from "@mui/icons-material";
 import { PK_PUBLICKEY, SESSION_PASSWORD_KEY } from "../../utils/keys";
@@ -187,10 +189,21 @@ export default function RevealSecretModal({
             e.preventDefault();
             if (step === "hold") cancelHoldReveal();
         }
+
     }
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down("lg")); // full screen on md & below
+
 
     return (
-        <Dialog open={open} onClose={onClose} fullScreen>
+        <Dialog
+
+            open={open}
+            onClose={onClose}
+            fullScreen={fullScreen}
+            maxWidth="xs"  // for large screens, limit the dialog width
+            fullWidth
+        >
             <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography fontWeight="bold" variant="subtitle1">
                     Reveal {secretType === "phrase" ? "Secret Recovery Phrase" : "Private Key"}
