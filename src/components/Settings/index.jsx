@@ -127,7 +127,7 @@ export default function SettingsDialog({ open, onClose, setPasswordDialogOpen, h
                             >
                                 <TwitterIcon fontSize="small" />
                             </IconButton>
-                            <IconButton
+                            {/* <IconButton
                                 component="a"
                                 href="https://discord.gg/yourserver"
                                 target="_blank"
@@ -135,8 +135,8 @@ export default function SettingsDialog({ open, onClose, setPasswordDialogOpen, h
                                 size="small"
                                 sx={{ mx: 0.5, color: "text.secondary" }}
                             >
-                                {/* <DiscordIcon fontSize="small" /> */}
-                            </IconButton>
+  <DiscordIcon fontSize="small" />  
+                            </IconButton> */}
                             <IconButton
                                 component="a"
                                 href="https://instagram.com/yourhandle"
@@ -191,6 +191,6 @@ export default function SettingsDialog({ open, onClose, setPasswordDialogOpen, h
                     © {new Date().getFullYear()} MetaPlay Wallet
                 </Typography>
             </DialogActions>
-        </Dialog>
+        </Dialog >
     );
 }
