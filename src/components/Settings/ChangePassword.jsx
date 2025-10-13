@@ -14,8 +14,10 @@ import {
     InputAdornment,
 } from "@mui/material";
 import { Close, Visibility, VisibilityOff } from "@mui/icons-material";
+import { SESSION_PASSWORD_KEY } from "../../utils/keys";
+import { saveLoginTime } from "../../utils/sessionUtils";
 
-export default function ChangePasswordDialog({ open, onClose, onPasswordChange }) {
+export default function ChangePasswordDialog({ open, onClose, }) {
     const [form, setForm] = useState({
         oldPassword: "",
         newPassword: "",
@@ -54,6 +56,8 @@ export default function ChangePasswordDialog({ open, onClose, onPasswordChange }
         return strongRegex.test(password);
     };
 
+
+
     const handleSubmit = async () => {
         const { oldPassword, newPassword, confirmPassword } = form;
 
@@ -74,24 +78,57 @@ export default function ChangePasswordDialog({ open, onClose, onPasswordChange }
             return;
         }
 
-        setLoading(true);
-        setError("");
         setSuccess(false);
+        setError("");
+        setLoading(true);
 
         try {
             // Simulate async password change request
             await new Promise((resolve) => setTimeout(resolve, 1500));
 
+            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+            if (!sessionPassword) {
+                throw new Error("Something went wrong.");
+            }
+            const decoded = atob(sessionPassword);
+
             // Pretend to verify old password
-            if (oldPassword !== "1234") {
+            if (oldPassword !== decoded) {
                 throw new Error("Incorrect old password.");
             }
 
-            if (onPasswordChange) onPasswordChange(newPassword);
+            localStorage.setItem(SESSION_PASSWORD_KEY, btoa(newPassword));
+            saveLoginTime();
 
             setSuccess(true);
             setForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
 
+            // === Show system notification ===
+            if (typeof chrome !== "undefined" && chrome.notifications) {
+                chrome.notifications.create({
+                    type: "basic",
+                    iconUrl: "icon.png", // path inside your extension
+                    title: "Password Updated",
+                    message: "Your password has been changed successfully."
+                });
+            } else if ("Notification" in window) {
+                // fallback for contexts without chrome.notifications
+                if (Notification.permission === "granted") {
+                    new Notification("Password Updated", {
+                        body: "Your password has been changed successfully."
+                    });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then((perm) => {
+                        if (perm === "granted") {
+                            new Notification("Password Updated", {
+                                body: "Your password has been changed successfully."
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Auto-close after short delay
             setTimeout(() => {
                 setSuccess(false);
                 onClose();

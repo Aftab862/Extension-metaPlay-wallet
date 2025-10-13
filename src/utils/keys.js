@@ -4,4 +4,5 @@ export const SESSION_KEY = "last-login-time";
 export const CHAIN_LIST = "chains-list";
 export const CHAIN_ID = "cid";
 export const PK_PUBLICKEY = "1122";
+export const PASS_KEY = "pass-key";
 

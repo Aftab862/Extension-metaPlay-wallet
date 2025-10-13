@@ -491,7 +491,7 @@ const WalletDashboard = ({
             {passwordDialogOpen && <ChangePasswordDialog
                 open={passwordDialogOpen}
                 onClose={() => setPasswordDialogOpen(false)}
-                onPasswordChange={(newPass) => console.log("Updated password:", newPass)}
+
             />
             }
 

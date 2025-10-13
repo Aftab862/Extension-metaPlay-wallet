@@ -110,23 +110,64 @@ const App = () => {
 
     /* Password submit */
     const handlePasswordSubmit = async (inputPassword) => {
-        if (!inputPassword.trim()) {
-            setError("Password is required.");
-            return;
-        }
-        const saved = loadWalletState();
-        let userMenemonics = saved?.wallets[0].mnemonic;
+        try {
+            // 1. Validate input
+            if (!inputPassword.trim()) {
+                setError("Password is required.");
+                return;
+            }
 
-        if (saved) {
+            // 2. Load any existing wallet data
+            const saved = loadWalletState();
 
-            // existing user
-            const decrypted = decryptMnemonic(userMenemonics, inputPassword);
-            if (!decrypted) {
+            // ========================================================
+            // FIRST-TIME USER FLOW (no saved wallet yet)
+            // ========================================================
+            if (!saved) {
+                localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
+                saveLoginTime();
+                setPassword(inputPassword);
+
+                // Encrypt and initialize wallet for the first time
+                encryptMnemonic(mnemonic, inputPassword);
+                const initial = await createInitialNestedState(mnemonic, inputPassword);
+
+                setWallets(initial.wallets);
+                setSelectedWalletIndex(0);
+                setSelectedAccountIndex(0);
+                persistWalletState(initial.wallets, 0, 0);
+
+                setStep("save-phrase");
+                return;
+            }
+
+            // ========================================================
+            // EXISTING USER FLOW
+            // ========================================================
+            const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
+            if (!sessionPassword) {
+                setError("Session expired or missing. Please re-enter your password.");
+                return;
+            }
+
+            const decoded = atob(sessionPassword);
+
+            // Verify password match
+            if (inputPassword !== decoded) {
                 setError("Invalid password.");
                 return;
             }
 
+            // Try decrypting existing mnemonic
+            const userMnemonic = saved?.wallets?.[0]?.mnemonic;
+            const decrypted = decryptMnemonic(userMnemonic, inputPassword);
 
+            if (!decrypted) {
+                setError("Invalid password or corrupted data.");
+                return;
+            }
+
+            // Update session
             localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
             saveLoginTime();
             setPassword(inputPassword);
@@ -137,21 +178,12 @@ const App = () => {
             persistWalletState(saved.wallets, saved.selectedWalletIndex, saved.selectedAccountIndex);
 
             setStep("main");
-        } else {
-            // first-time create
-            localStorage.setItem(SESSION_PASSWORD_KEY, btoa(inputPassword));
-            saveLoginTime();
-            setPassword(inputPassword);
-            encryptMnemonic(mnemonic, inputPassword);
-
-            const initial = await createInitialNestedState(mnemonic, inputPassword);
-            setWallets(initial.wallets);
-            setSelectedWalletIndex(0);
-            setSelectedAccountIndex(0);
-            persistWalletState(initial.wallets, 0, 0);
-            setStep("save-phrase");
+        } catch (err) {
+            console.error("Error handling password submit:", err);
+            setError("Unexpected error occurred. Please try again.");
         }
     };
+
 
     const handleSavePhraseContinue = () => setStep("verify");
     const handleVerifyContinue = () => setStep("main");
