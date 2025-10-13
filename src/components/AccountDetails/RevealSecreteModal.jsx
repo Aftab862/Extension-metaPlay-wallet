@@ -86,14 +86,14 @@ export default function RevealSecretModal({
         return decrypted ?? null;
     };
 
-    const getSecretPhrases = (password) => {
+    const getSecretPhrases = () => {
         const account = findAccountDetails(wallet, currentAccount);
         if (!account) return null;
 
         const encryptedMnemonic = account.wallet?.mnemonic ?? null;
         if (!encryptedMnemonic) return null;
 
-        const decrypted = decryptMnemonic(encryptedMnemonic, password);
+        const decrypted = decryptMnemonic(encryptedMnemonic);
         return decrypted ?? null;
     };
 

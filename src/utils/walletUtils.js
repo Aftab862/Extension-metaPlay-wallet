@@ -124,7 +124,7 @@ export function normalizeWalletObject(walletObj, index) {
 export const createInitialNestedState = async (mnemonicPhrase, inputPassword) => {
     const firstWallet = await generateWalletFromMnemonic(mnemonicPhrase, 0);
     const normalized = normalizeWalletObject(firstWallet, 0);
-    const mnemonicFromUser = await encryptMnemonic(mnemonicPhrase, inputPassword);
+    const mnemonicFromUser = await encryptMnemonic(mnemonicPhrase);
 
     return {
         wallets: [{ mnemonic: mnemonicFromUser, walletType: "seed", accounts: [normalized] }],

@@ -118,13 +118,12 @@ const WalletDashboard = ({
             if (!sessionPassword) {
                 throw new Error("Session password missing.");
             }
-            const decoded = atob(sessionPassword);
 
             // check duplicates (by entropy)
             const alreadyExists = currentWallets.some((w) => {
                 if (!w.mnemonic) return false;
                 try {
-                    const decrypted = decryptMnemonic(w.mnemonic, decoded);
+                    const decrypted = decryptMnemonic(w.mnemonic);
                     const storedEntropy = bip39.mnemonicToEntropy(
                         decrypted.trim().toLowerCase()
                     );
@@ -145,7 +144,7 @@ const WalletDashboard = ({
             const firstAccount = await generateWalletFromMnemonic(cleanedMnemonic, 0);
 
             // encrypt mnemonic for storage
-            const encryptedMnemonic = encryptMnemonic(cleanedMnemonic, decoded);
+            const encryptedMnemonic = encryptMnemonic(cleanedMnemonic);
 
             // normalize account and update state
             const normalized = normalizeWalletObject(firstAccount, 0);

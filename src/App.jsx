@@ -83,7 +83,7 @@ const App = () => {
                     const decoded = atob(sessionPassword);
                     let userMenemonics = saved?.wallets[0].mnemonic;
 
-                    const decrypted = decryptMnemonic(userMenemonics, decoded);
+                    const decrypted = decryptMnemonic(userMenemonics);
 
                     if (decrypted) {
                         setPassword(decoded);
@@ -129,7 +129,7 @@ const App = () => {
                 setPassword(inputPassword);
 
                 // Encrypt and initialize wallet for the first time
-                encryptMnemonic(mnemonic, inputPassword);
+                // encryptMnemonic(mnemonic);
                 const initial = await createInitialNestedState(mnemonic, inputPassword);
 
                 setWallets(initial.wallets);
@@ -160,7 +160,7 @@ const App = () => {
 
             // Try decrypting existing mnemonic
             const userMnemonic = saved?.wallets?.[0]?.mnemonic;
-            const decrypted = decryptMnemonic(userMnemonic, inputPassword);
+            const decrypted = decryptMnemonic(userMnemonic);
 
             if (!decrypted) {
                 setError("Invalid password or corrupted data.");
@@ -199,9 +199,7 @@ const App = () => {
         const currentWallet = wallets[selectedWalletIndex];
         const newIndex = currentWallet.accounts.length;
 
-        const sessionPassword = localStorage.getItem(SESSION_PASSWORD_KEY);
-        const decoded = atob(sessionPassword);
-        const decrypted = decryptMnemonic(currentWallet?.mnemonic, decoded);
+        const decrypted = decryptMnemonic(currentWallet?.mnemonic);
 
         const newAccount = await generateWalletFromMnemonic(decrypted, newIndex);
         const normalized = normalizeWalletObject(newAccount, newIndex);
