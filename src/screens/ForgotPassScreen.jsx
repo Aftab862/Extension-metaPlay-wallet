@@ -146,6 +146,7 @@ export default function ForgotPassword({ setPhase }) {
 
 
     const handleBack = () => {
+        if (step === "start") setPhase("enter-password");
         if (step === "phrase") setStep("start");
         else if (step === "password") setStep("phrase");
     };
