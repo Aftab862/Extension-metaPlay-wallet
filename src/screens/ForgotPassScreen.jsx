@@ -181,7 +181,7 @@ export default function ForgotPassword({ setPhase }) {
 
 
                 </Box>
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 0 }}>
                     <img src={Logo} alt="centered logo" style={{ width: "100px" }} />
                 </Box>
 

@@ -276,7 +276,7 @@ const App = () => {
                     )}
 
                     {step === "import-wallet" && (
-                        <ImportWalletScreen onImport={handleImportMnemonic} />
+                        <ImportWalletScreen setStep={setStep} onImport={handleImportMnemonic} />
                     )}
 
                     {(step === "set-password" || step === "enter-password") && (
