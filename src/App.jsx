@@ -17,6 +17,7 @@ import ImportWalletScreen from "./screens/ImportWallet";
 import { initChains, loadFromLocalStorage, saveToLocalStorage } from "./utils/storage";
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
 import VerifyPhraseScreen from "./screens/VerifyPhrases";
+import ForgotPassword from "./screens/ForgotPassScreen";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
@@ -283,6 +284,7 @@ const App = () => {
                             mode={step === "set-password" ? "create" : "enter"}
                             onPasswordSubmit={handlePasswordSubmit}
                             error={error}
+                            setStep={setStep}
                         />
                     )}
 
@@ -291,6 +293,9 @@ const App = () => {
                     )}
                     {step === "verify" && (
                         <VerifyPhraseScreen mnemonic={mnemonic} onContinue={handleVerifyContinue} />
+                    )}
+                    {step === "forgot-pass" && (
+                        <ForgotPassword mnemonic={mnemonic} onContinue={handleVerifyContinue} />
                     )}
 
                     {step === "main" && (

@@ -16,7 +16,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Logo from '../../public/icons/Logo.svg'
 
 
-const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
+const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter", setStep }) => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [validationError, setValidationError] = useState("");
@@ -163,7 +163,7 @@ const PasswordScreen = ({ onPasswordSubmit, error, mode = "enter" }) => {
                 {mode === "create" ? "Create Wallet" : "Unlock Wallet"}
             </Button>
 
-            <Typography variant="body1" mt={3} color="#1976d2" >
+            <Typography variant="body1" mt={3} color="#1976d2" onClick={() => setStep("forgot-pass")} style={{ cursor: "pointer" }} >
                 Forgot password?
             </Typography>
 
