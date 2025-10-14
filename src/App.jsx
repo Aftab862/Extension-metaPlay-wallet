@@ -295,7 +295,9 @@ const App = () => {
                         <VerifyPhraseScreen mnemonic={mnemonic} onContinue={handleVerifyContinue} />
                     )}
                     {step === "forgot-pass" && (
-                        <ForgotPassword mnemonic={mnemonic} onContinue={handleVerifyContinue} />
+                        <ForgotPassword
+                            setPhase={setStep}
+                        />
                     )}
 
                     {step === "main" && (

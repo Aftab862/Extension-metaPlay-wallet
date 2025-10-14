@@ -11,16 +11,20 @@ import {
     Avatar,
     Paper,
 } from "@mui/material";
+import Logo from "../../public/icons/Logo.svg";
+
 import {
     ArrowBack,
     LockOutlined,
     Visibility,
     VisibilityOff,
 } from "@mui/icons-material";
+import { createInitialNestedState, persistWalletState } from "../utils/walletUtils";
+import { SESSION_KEY, SESSION_PASSWORD_KEY } from "../utils/keys";
 
 const PRIMARY_COLOR = "#1976d2";
 
-export default function ForgotPassword({ onResetComplete, onCancel }) {
+export default function ForgotPassword({ setPhase }) {
     const [step, setStep] = useState("start");
     const [mnemonicWords, setMnemonicWords] = useState(Array(12).fill(""));
     const [newPassword, setNewPassword] = useState("");
@@ -32,6 +36,7 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleMnemonicChange = (index, value) => {
+        setError("");
         const updated = [...mnemonicWords];
         updated[index] = value.trim();
         setMnemonicWords(updated);
@@ -86,19 +91,58 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
         }
 
         try {
+            console.log("[Reset Step 0] Starting reset process...");
             setLoading(true);
-            // simulate async request
+
+            // step 1: clear localStorage and indexedDB
+            console.log("[Reset Step 1] Clearing localStorage and sessionStorage...");
+            localStorage.clear();
+            sessionStorage.clear();
+
+            console.log("[Reset Step 1.1] Fetching list of IndexedDB databases...");
+            const dbs = await indexedDB.databases();
+
+            console.log("[Reset Step 1.2] Deleting IndexedDB databases...");
+            for (const db of dbs) {
+                if (db.name) {
+                    console.log(`   → Deleting DB: ${db.name}`);
+                    indexedDB.deleteDatabase(db.name);
+                }
+            }
+
+            // step 2: simulate async reset delay
+            console.log("[Reset Step 2] Simulating delay...");
             await new Promise((res) => setTimeout(res, 1000));
 
-            setSuccess("Password reset successfully!");
+            const mnemonicString = mnemonicWords.join(" ").trim();
+            console.log("[Debug] Mnemonic to send:", mnemonicString);
+
+            const initial = await createInitialNestedState(mnemonicString);
+
+            // step 3: create fresh wallet from mnemonic
+            console.log("[Reset Step 3] Creating fresh wallet from mnemonic...");
+
+            console.log("[Reset Step 3.1] Persisting new wallet state...");
+            persistWalletState(initial.wallets, 0, 0);
+            localStorage.setItem(SESSION_PASSWORD_KEY, btoa(newPassword))
+
+            // step 4: notify user
+            console.log("[Reset Step 4] Update success message...");
+            setSuccess("Password reset and new wallet created successfully!");
             setLoading(false);
-            setTimeout(() => onResetComplete?.(), 1000);
+            setPhase("enter-password")
+
+
+
+            console.log("[Reset Step ✅] Process finished successfully.");
         } catch (err) {
-            console.error(err);
+            console.error("[Reset Step ❌] Error occurred:", err);
             setError("Something went wrong. Try again.");
             setLoading(false);
         }
+
     };
+
 
 
     const handleBack = () => {
@@ -109,12 +153,7 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
     return (
         <Box
             sx={{
-                minHeight: "100vh",
 
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
                 px: 2,
             }}
         >
@@ -123,7 +162,12 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
                 sx={{
                     width: "100%",
                     maxWidth: 420,
-                    p: .05,
+                    minHeight: "80vh",
+                    padding: "2rem 0.5rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+
+                    flexDirection: "column",
 
                 }}
             >
@@ -134,25 +178,15 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
                         <ArrowBack />
                     </IconButton>
 
-                    <Avatar
-                        sx={{
-
-                            width: 60,
-                            height: 60,
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        }}
-                    >
-                        <LockOutlined sx={{ fontSize: 30, color: PRIMARY_COLOR }} />
-                    </Avatar>
-
-                    <Box>
-
-                    </Box>
 
                 </Box>
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                    <img src={Logo} alt="centered logo" style={{ width: "100px" }} />
+                </Box>
+
 
                 {/* Content */}
-                <Box sx={{ mt: 3 }}>
+                <Box >
                     {step === "start" && (
                         <>
                             <Typography
@@ -169,6 +203,7 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
                                 MetaPlay can’t recover your password for you.
                                 Use your Secret Recovery Phrase to reset your wallet.
                             </Typography>
+
 
                             <Button
                                 fullWidth
@@ -225,6 +260,7 @@ export default function ForgotPassword({ onResetComplete, onCancel }) {
                                     textTransform: "none",
                                     fontWeight: 600,
                                 }}
+                                disabled={!validateMnemonic()}
                                 onClick={handleContinueFromPhrase}
                             >
                                 Continue
