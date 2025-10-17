@@ -50,8 +50,46 @@ async function updateTransactionStatus(txHash, status, extra = {}) {
 // ----------------------
 // ✅ Chrome Listener
 // ----------------------
+// background.js
+// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+//     if (msg.type === "CONNECT_WALLET") {
+//         console.log("⚡ Background received CONNECT_WALLET");
+//         // Replace this with your actual wallet connection logic
+//         const fakeAddress = "0xD3adb33f1234567890abcdef1234567890ABCDEF";
+//         sendResponse({ success: true, account: fakeAddress });
+//         return true;
+//     }
+// });
+
+
+
+
+
+
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // console.log("📩 Message received:", request.type, request.payload);
+
+
+    if (request.type === "CONNECT_WALLET") {
+        console.log("⚡ Background received CONNECT_WALLET");
+
+        // Open the extension popup (or a dedicated page) for login/approval
+        chrome.windows.create({
+            url: chrome.runtime.getURL("popup.html"),
+            type: "popup",
+            width: 370,
+            height: 630,
+            top: 80, // 🡐 adjust this to your liking
+            left: 1000 // 🡐 this pushes it to the right edge
+        });
+
+        // Wait for the wallet to send back an address (for now, fake)
+        // In a real flow, this would be after user approves inside popup
+        const fakeAddress = "0xD3adb33f1234567890abcdef1234567890ABCDEF";
+        sendResponse({ success: true, account: fakeAddress });
+        return true;
+    }
 
     // ------------------------
     // GET BALANCE

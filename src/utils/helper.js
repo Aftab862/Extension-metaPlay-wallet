@@ -1,3 +1,4 @@
+import { loadWalletState } from "./walletUtils";
 // src/utils/helper.js
 export function mapColors(symbol) {
     if (!symbol) return "#9e9e9e";
@@ -144,3 +145,8 @@ export const groupByDate = (history = []) => {
 
     return sortedGrouped;
 };
+
+export const GetAddress = () => {
+    const wallet = loadWalletState()
+    return wallet;
+}
