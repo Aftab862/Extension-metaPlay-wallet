@@ -91,7 +91,8 @@ function waitForPopupAddress(timeoutMs = 15000) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // 1) DApp registers
     if (request.type === "REGISTER_DAPP" && sender.tab?.id) {
-        activeDappTabs.push(sender.tab.id);
+
+        if (!activeDappTabs.includes(sender.tab.id)) activeDappTabs.push(sender.tab.id);
         console.log("🌐 DApp registered:", sender.tab.id);
         // Immediately send current address if known (so DApp doesn't miss it)
         sendResponse({ ok: true, address: currentAddress || null });
@@ -565,12 +566,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // no handler matched
 });
 
-/* When tabs are removed, clean registered set */
-// chrome.tabs.onRemoved.addListener((tabId) => {
-//     if (activeDappTabs.has(tabId)) {
-//         activeDappTabs.delete(tabId);
-//         console.log("🚪 Removed registered DApp tab:", tabId);
-//     }
-// });
+chrome.tabs.onRemoved.addListener((tabId) => {
+    const i = activeDappTabs.indexOf(tabId);
+    if (i !== -1) activeDappTabs.splice(i, 1);
+});
 
 
