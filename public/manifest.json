@@ -5,7 +5,9 @@
   "description": "Securely manage your digital assets with MetaPlay Wallet, your decentralized Web3 digital asset wallet extension.",
   "permissions": [
     "notifications",
-    "scripting"
+    "tabs",
+    "scripting",
+    "activeTab"
   ],
   "background": {
     "service_worker": "background.js"
@@ -17,7 +19,8 @@
       ],
       "js": [
         "content.js"
-      ]
+      ],
+      "run_at": "document_start"
     }
   ],
   "action": {

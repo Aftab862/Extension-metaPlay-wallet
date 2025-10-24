@@ -46,50 +46,167 @@ async function updateTransactionStatus(txHash, status, extra = {}) {
     });
 }
 
-
-// ----------------------
-// ✅ Chrome Listener
-// ----------------------
 // background.js
-// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-//     if (msg.type === "CONNECT_WALLET") {
-//         console.log("⚡ Background received CONNECT_WALLET");
-//         // Replace this with your actual wallet connection logic
-//         const fakeAddress = "0xD3adb33f1234567890abcdef1234567890ABCDEF";
-//         sendResponse({ success: true, account: fakeAddress });
-//         return true;
-//     }
-// });
+const activeDappTabs = [];
+let currentAddress = null;
+
+/* Helper: send message to extension listeners (popup) */
+function sendMessageToExtension(message) {
+    return new Promise((resolve) => {
+        try {
+            chrome.runtime.sendMessage(message, (response) => {
+                if (chrome.runtime.lastError) {
+                    resolve({ ok: false, error: chrome.runtime.lastError.message });
+                } else {
+                    resolve({ ok: true, response });
+                }
+            });
+        } catch (err) {
+            resolve({ ok: false, error: err?.message || String(err) });
+        }
+    });
+}
+
+/* Helper: wait for popup to send POPUP_CURRENT_ADDRESS */
+function waitForPopupAddress(timeoutMs = 15000) {
+    return new Promise((resolve) => {
+        const listener = (msg) => {
+            if (msg?.type === "POPUP_CURRENT_ADDRESS") {
+                chrome.runtime.onMessage.removeListener(listener);
+                resolve({ success: true, address: msg.address || null });
+            }
+        };
+        chrome.runtime.onMessage.addListener(listener);
+
+        setTimeout(() => {
+            chrome.runtime.onMessage.removeListener(listener);
+            resolve({ success: false, error: "timeout" });
+        }, timeoutMs);
+    });
+}
 
 
 
-
-
-
-
+/* Main message handler */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    // console.log("📩 Message received:", request.type, request.payload);
-
-
-    if (request.type === "CONNECT_WALLET") {
-        console.log("⚡ Background received CONNECT_WALLET");
-
-        // Open the extension popup (or a dedicated page) for login/approval
-        chrome.windows.create({
-            url: chrome.runtime.getURL("popup.html"),
-            type: "popup",
-            width: 370,
-            height: 630,
-            top: 80, // 🡐 adjust this to your liking
-            left: 1000 // 🡐 this pushes it to the right edge
-        });
-
-        // Wait for the wallet to send back an address (for now, fake)
-        // In a real flow, this would be after user approves inside popup
-        const fakeAddress = "0xD3adb33f1234567890abcdef1234567890ABCDEF";
-        sendResponse({ success: true, account: fakeAddress });
+    // 1) DApp registers
+    if (request.type === "REGISTER_DAPP" && sender.tab?.id) {
+        activeDappTabs.push(sender.tab.id);
+        console.log("🌐 DApp registered:", sender.tab.id);
+        // Immediately send current address if known (so DApp doesn't miss it)
+        sendResponse({ ok: true, address: currentAddress || null });
         return true;
     }
+
+    // 3) Popup notifies background of current address
+    if (request.type === "POPUP_CURRENT_ADDRESS") {
+        console.log("📬 Background received address:", request.address);
+        currentAddress = request.address || null;
+        console.log("Active DApp tabs to notify:", activeDappTabs);
+        if (activeDappTabs.length > 0) {
+            for (const tabId of activeDappTabs) {
+                console.log("➡️ Forwarding WALLET_UPDATED to DApp tab:", tabId, "with address:", currentAddress);
+                chrome.tabs.sendMessage(tabId, { type: "WALLET_UPDATED", address: currentAddress }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.warn(`⚠️ Could not reach DApp tab ${tabId}:`, chrome.runtime.lastError.message);
+                        // activeDappTabs.delete(tabId);
+                    }
+                });
+            }
+        } else {
+            console.log("ℹ️ No registered DApp tabs to forward to (address saved).");
+        }
+
+        sendResponse({ ok: true });
+        return true;
+    }
+
+    // 4) Simple getter for DApp
+    if (request.type === "GET_CURRENT_ADDRESS") {
+        sendResponse({ success: true, account: currentAddress || null });
+        return true;
+    }
+
+    // 5) Internal quick check for CONNECT flow (popup can respond)
+    if (request.type === "INTERNAL_GET_ADDRESS") {
+        sendResponse({ address: currentAddress || null });
+        return true;
+    }
+
+    // 6) CONNECT_WALLET flow (called by content when page asks to connect)
+    if (request.type === "CONNECT_WALLET") {
+        (async () => {
+            console.log("🔗 CONNECT_WALLET received from content");
+            try {
+                // a) If we already have an address, return it
+                if (currentAddress) {
+                    console.log("✅ CONNECT_WALLET: returning stored address:", currentAddress);
+                    sendResponse({ success: true, account: currentAddress });
+                    return;
+                }
+
+                // b) Try to ask popup/internal listeners silently
+                const quick = await sendMessageToExtension({ type: "INTERNAL_GET_ADDRESS" });
+                if (quick.ok && quick.response?.address) {
+                    currentAddress = quick.response.address;
+                    console.log("✅ CONNECT_WALLET: INTERNAL_GET_ADDRESS returned:", currentAddress);
+
+                    // forward to registered dapps
+                    for (const tabId of Array.from(activeDappTabs)) {
+                        chrome.tabs.sendMessage(tabId, { type: "WALLET_UPDATED", address: currentAddress }, () => {
+                            if (chrome.runtime.lastError) {
+                                console.warn("⚠️ Forward failed:", chrome.runtime.lastError.message);
+                                // activeDappTabs.delete(tabId);
+                            }
+                        });
+                    }
+
+                    sendResponse({ success: true, account: currentAddress });
+                    return;
+                }
+
+                // c) Open popup UI for user approval
+                console.log("ℹ️ CONNECT_WALLET: opening popup UI for user approval");
+                chrome.windows.create({
+                    url: chrome.runtime.getURL("popup.html"),
+                    type: "popup",
+                    width: 370,
+                    height: 630,
+                    top: 80,
+                    left: 1000
+                });
+
+                // d) Wait for popup to send address
+                const got = await waitForPopupAddress(15000);
+                if (got.success && got.address) {
+                    currentAddress = got.address;
+                    console.log("✅ CONNECT_WALLET: popup returned address:", currentAddress);
+
+                    for (const tabId of Array.from(activeDappTabs)) {
+                        chrome.tabs.sendMessage(tabId, { type: "WALLET_UPDATED", address: currentAddress }, () => {
+                            if (chrome.runtime.lastError) {
+                                console.warn("⚠️ Forward after popup failed:", chrome.runtime.lastError.message);
+                                // activeDappTabs.delete(tabId);
+                            }
+                        });
+                    }
+
+                    sendResponse({ success: true, account: currentAddress });
+                    return;
+                }
+
+                // e) Timeout or no address
+                console.warn("⛔ CONNECT_WALLET: popup timed out or returned no address");
+                sendResponse({ success: false, error: "timeout_or_no_address" });
+            } catch (err) {
+                console.error("💥 CONNECT_WALLET error:", err);
+                sendResponse({ success: false, error: err?.message || String(err) });
+            }
+        })();
+
+        return true; // keep channel open
+    }
+
 
     // ------------------------
     // GET BALANCE
@@ -445,7 +562,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 
-    return false; // no handler matched
+    return true; // no handler matched
 });
+
+/* When tabs are removed, clean registered set */
+// chrome.tabs.onRemoved.addListener((tabId) => {
+//     if (activeDappTabs.has(tabId)) {
+//         activeDappTabs.delete(tabId);
+//         console.log("🚪 Removed registered DApp tab:", tabId);
+//     }
+// });
 
 

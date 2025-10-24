@@ -18,6 +18,8 @@ import { initChains, loadFromLocalStorage, saveToLocalStorage } from "./utils/st
 import { CHAIN_ID, SESSION_PASSWORD_KEY, WALLET_DATA_KEY } from "./utils/keys";
 import VerifyPhraseScreen from "./screens/VerifyPhrases";
 import ForgotPassword from "./screens/ForgotPassScreen";
+import { notifyAccountChanged } from "./popup-messaging";
+import { GetAddress } from "./utils/helper";
 const PasswordScreen = lazy(() => import("./screens/Password"));
 const SavePhraseScreen = lazy(() => import("./screens/SavePhraseScreen"));
 const WalletDashboard = React.memo(lazy(() => import("./screens/WalletDashboard")));
@@ -221,13 +223,21 @@ const App = () => {
 
 
     /* Select account (wallet + account) */
-    const handleSelectAccount = useCallback((walletIdx, accountIdx) => {
+    const handleSelectAccount = useCallback(async (walletIdx, accountIdx) => {
         const w = Number(walletIdx || 0) || 0;
         const a = Number(accountIdx || 0) || 0;
+
         setSelectedWalletIndex(w);
         setSelectedAccountIndex(a);
         persistWalletState(wallets, w, a);
+
+        // ✅ Let the new state persist before reading address
+        setTimeout(() => {
+            const newAddress = GetAddress();
+            notifyAccountChanged(newAddress);
+        }, 300); // small delay is fine; 200–300ms usually enough
     }, [wallets]);
+
 
 
 

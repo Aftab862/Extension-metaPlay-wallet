@@ -1,4 +1,5 @@
-import { loadWalletState } from "./walletUtils";
+import { WALLET_DATA_KEY } from "./keys";
+import { loadFromLocalStorage } from "./storage";
 // src/utils/helper.js
 export function mapColors(symbol) {
     if (!symbol) return "#9e9e9e";
@@ -146,7 +147,57 @@ export const groupByDate = (history = []) => {
     return sortedGrouped;
 };
 
+
+const isLegacyShape = (data) =>
+    !!data &&
+    Array.isArray(data.wallets) &&
+    data.wallets.length > 0 &&
+    typeof data.wallets[0]?.accountIndex === "number" &&
+    Array.isArray(data.wallets[0]?.chains);
+
+const formattingObj = (raw) => {
+    if (!raw) return null;
+
+    if (isLegacyShape(raw)) {
+        const selectedAccountIndex = Number(raw.selectedIndex || 0) || 0;
+        return {
+            wallets: [{ accounts: raw.wallets }],
+            selectedWalletIndex: 0,
+            selectedAccountIndex,
+        };
+    }
+
+    return {
+        wallets: Array.isArray(raw.wallets) ? raw.wallets : [{ accounts: [] }],
+        selectedWalletIndex: Number(raw.selectedWalletIndex || 0) || 0,
+        selectedAccountIndex: Number(raw.selectedAccountIndex || 0) || 0,
+    };
+};
+
 export const GetAddress = () => {
-    const wallet = loadWalletState()
-    return wallet;
+
+    const raw = loadFromLocalStorage(WALLET_DATA_KEY);
+
+    const walletObj = raw ? formattingObj(raw) : null;
+    console.log("Loaded wallet state:", walletObj);
+    const wallets = walletObj?.wallets;
+    const aId = walletObj?.selectedAccountIndex;
+    const wId = walletObj?.selectedWalletIndex;
+
+    if (!Array.isArray(wallets) || wallets.length === 0) {
+        return null;
+    }
+
+    const wIdx = wallets[wId]
+    if (!wIdx) {
+        return null;
+    }
+
+    const account = wIdx?.accounts?.[aId];;
+
+    if (!account) {
+        return null;
+    }
+    return account.chains[0].address;
+
 }
