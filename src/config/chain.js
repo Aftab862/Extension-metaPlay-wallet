@@ -5,6 +5,34 @@ const API_KEY = "6RW4_bP3AEOZffLygkqmRTM58lp01gz9"
 
 export const EVM_CHAINS = [
     {
+        name: "Binance Smart Chain",
+        chainId: 56,
+        nativeCurrency: {
+            symbol: "BNB",
+            name: "BNB",
+            balance: "0.0000"
+        },
+        rpcUrl: "https://bsc-dataseed.binance.org/",
+        explorerUrl: "https://bscscan.com",  // added
+        tokens: [
+
+            {
+                address: "0x37A63788816b07cf227e9C45d889D6De2EAE3c65",
+                symbol: "MPT",
+                decimals: 18,
+                name: "MetaPlay Token",
+                balance: "0.0000"
+            },
+            {
+                address: "0x55d398326f99059fF775485246999027B3197955",
+                symbol: "USDT",
+                decimals: 18,
+                name: "Tether USD",
+                balance: "0.0000"
+            }
+        ]
+    },
+    {
         name: "Ethereum",
         chainId: 1,
         nativeCurrency: {
@@ -31,47 +59,28 @@ export const EVM_CHAINS = [
             }
         ]
     },
-    {
-        name: "Binance Smart Chain",
-        chainId: 56,
-        nativeCurrency: {
-            symbol: "BNB",
-            name: "BNB",
-            balance: "0.0000"
-        },
-        rpcUrl: "https://bsc-dataseed.binance.org/",
-        explorerUrl: "https://bscscan.com",  // added
-        tokens: [
 
-            {
-                address: "0x55d398326f99059fF775485246999027B3197955",
-                symbol: "USDT",
-                decimals: 18,
-                name: "Tether USD",
-                balance: "0.0000"
-            }
-        ]
-    },
-    {
-        name: "VRCN chain",
-        chainId: 7131,
-        nativeCurrency: {
-            symbol: "VRCN",
-            name: "VRCN",
-            balance: "0.0000"
-        },
-        rpcUrl: "https://rpc-mainnet-4.vrcchain.com/",
-        explorerUrl: "https://vrcchain.com/",  // your given
-        tokens: [
-            {
-                address: "0xa3E9cde10458091E0Da9eC29Df0179912645eeA9",
-                symbol: "MPT",
-                decimals: 18,
-                name: "MPT",
-                balance: "0.0000"
-            }
-        ]
-    },
+
+    // {
+    //     name: "VRCN chain",
+    //     chainId: 7131,
+    //     nativeCurrency: {
+    //         symbol: "VRCN",
+    //         name: "VRCN",
+    //         balance: "0.0000"
+    //     },
+    //     rpcUrl: "https://rpc-mainnet-4.vrcchain.com/",
+    //     explorerUrl: "https://vrcchain.com/",  // your given
+    //     tokens: [
+    //         {
+    //             address: "0xa3E9cde10458091E0Da9eC29Df0179912645eeA9",
+    //             symbol: "MPT",
+    //             decimals: 18,
+    //             name: "MPT",
+    //             balance: "0.0000"
+    //         }
+    //     ]
+    // },
     {
         name: "Polygon",
         chainId: 137,
@@ -85,26 +94,7 @@ export const EVM_CHAINS = [
         explorerUrl: "https://polygonscan.com",  // found this :contentReference[oaicite:0]{index=0}
         tokens: []
     },
-    {
-        name: "DXB chain",
-        chainId: 1999,
-        nativeCurrency: {
-            symbol: "VRCN",
-            name: "VRCN",
-            balance: "0.0000"
-        },
-        rpcUrl: "https://rpc-testnet-1.vrcchain.com",
-        explorerUrl: "https://dxb.vrcchain.com/",  // your given
-        tokens: [
-            {
-                address: "0x4EdcE81D8c1635A57d0F2Dd3DD0D0B25f173D145",
-                symbol: "MPT",
-                decimals: 18,
-                name: "MPT",
-                balance: "0.0000"
-            }
-        ]
-    }
+
 ];
 
 
