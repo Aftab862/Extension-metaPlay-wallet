@@ -19,7 +19,7 @@ export const initChains = () => {
     const existing = localStorage.getItem(CHAIN_LIST);
     if (!existing) {
         localStorage.setItem(CHAIN_LIST, JSON.stringify(EVM_CHAINS));
-        localStorage.setItem(CHAIN_ID, 1)
+        localStorage.setItem(CHAIN_ID, 56); // Default to BSC
         return EVM_CHAINS || [];
     }
     return existing ? JSON.parse(existing) : null
